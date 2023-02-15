@@ -25,7 +25,7 @@ class SliderWidget extends StatelessWidget {
       required this.onChanged,
       this.label,
       this.minValue = 0.0,
-      this.maxValue = 0.5});
+      this.maxValue = 1});
 
   @override
   Widget build(BuildContext context) {

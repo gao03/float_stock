@@ -82,12 +82,6 @@ class _HomePageState extends State<HomePage> {
     if (!isRunning) {
       await FloatwingPlugin().startService();
     }
-
-    var _w = FloatwingPlugin().windows[windowConfig.id];
-    if (null != _w) {
-      return;
-    }
-    windowConfig.create();
   }
 
   double get maxHeight {
@@ -122,6 +116,11 @@ class _HomePageState extends State<HomePage> {
     if (!p2) {
       FloatwingPlugin().startService();
     }
+    var _w = FloatwingPlugin().windows[windowConfig.id];
+    if (null != _w) {
+      return;
+    }
+    windowConfig.create();
   }
 
   void addNewStock(StockInfo stock) async {
@@ -133,16 +132,18 @@ class _HomePageState extends State<HomePage> {
     await updateConfigAndRefresh();
   }
 
-  void deleteStock(stock) async {
+  Future<bool> deleteStock(stock) async {
     var isConfirm = await showConfirmDialog(context, "确定删除【${stock.name}】?");
     if (!isConfirm) {
-      return;
+      return false;
     }
     config.stockList.removeWhere((element) => element.key == stock.key);
     await updateConfigAndRefresh();
+    return true;
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
+    config.floatConfig.windowHeight = max(config.floatConfig.windowHeight, 40.0 * config.stockList.length / maxHeight);
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
     var result = await updateConfig(config);
@@ -230,7 +231,7 @@ class _HomePageState extends State<HomePage> {
     windowConfig.config?.width = (config.floatConfig.windowWidth * config.floatConfig.screenWidth).toInt();
     windowConfig.config?.height = (config.floatConfig.windowHeight * config.floatConfig.screenHeight).toInt();
     if (config.floatConfig.enable) {
-      await checkFloatPermission();
+      checkFloatPermission();
       windowConfig.start();
       windowConfig.show();
     } else {
@@ -241,7 +242,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print("main, size: ${window.physicalSize}");
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
@@ -324,26 +324,42 @@ class _HomePageState extends State<HomePage> {
               BrnNormalFormGroup(title: "股票信息", children: [
                 SizedBox(
                   height: max(maxHeight - 616, 200),
-                  child: ListView(children: [
-                    for (var stock in config.stockList)
-                      BrnSwitchFormItem(
-                        title: stock.name,
-                        subTitle: stock.code,
-                        value: stock.showInFloat,
-                        prefixIconType: BrnPrefixIconType.remove,
-                        isRequire: false,
-                        onRemoveTap: () {
-                          deleteStock(stock);
-                        },
-                        onChanged: (oldValue, newValue) {
-                          setState(() {
-                            stock.showInFloat = newValue;
-                            updateConfigAndRefresh();
-                          });
-                          BrnToast.show("在悬浮窗${newValue ? '' : '不'}展示${stock.name}", context);
-                        },
-                      ),
-                  ]),
+                  child: ReorderableListView(
+                      onReorder: (int oldIndex, int newIndex) {
+                        setState(() {
+                          if (oldIndex < newIndex) {
+                            newIndex -= 1;
+                          }
+                          var temp = config.stockList.removeAt(oldIndex);
+                          config.stockList.insert(newIndex, temp);
+                          updateConfigAndRefresh();
+                        });
+                      },
+                      children: [
+                        for (var stock in config.stockList)
+                          Dismissible(
+                              key: Key(stock.key),
+                              background: Container(color: Colors.red),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (direction) => deleteStock(stock),
+                              child: BrnSwitchFormItem(
+                                title: stock.name,
+                                subTitle: stock.code,
+                                value: stock.showInFloat,
+                                // prefixIconType: BrnPrefixIconType.remove,
+                                isRequire: false,
+                                onRemoveTap: () {
+                                  deleteStock(stock);
+                                },
+                                onChanged: (oldValue, newValue) {
+                                  setState(() {
+                                    stock.showInFloat = newValue;
+                                    updateConfigAndRefresh();
+                                  });
+                                  BrnToast.show("在悬浮窗${newValue ? '' : '不'}展示${stock.name}", context);
+                                },
+                              ))
+                      ]),
                 )
               ]),
               BrnBottomButtonPanel(

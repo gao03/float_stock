@@ -5,10 +5,5 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <application>
-        <service
-            android:name="im.zoe.labs.flutter_floatwing.FloatwingService"
-            android:label="Floatwing Service" />
-    </application>
 
 </manifest>

@@ -103,5 +103,3 @@ class AppConfig extends ToJsonString {
   @override
   Map<String, dynamic> toJson() => _$AppConfigToJson(this);
 }
-
-class Pair {}

@@ -122,7 +122,9 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     return Container(
         width: config.floatConfig.windowWidth * config.floatConfig.screenWidth,
         height: config.floatConfig.windowHeight * config.floatConfig.screenHeight,
+        // color: Colors.white.withOpacity(config.floatConfig.opacity),
         child: Card(
+            elevation: 0,
             color: Colors.white.withOpacity(config.floatConfig.opacity),
             child: Column(children: [
               const Padding(
