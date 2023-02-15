@@ -26,7 +26,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   void initState() {
     super.initState();
     config = widget.config;
-    stockList = config.stockList;
+    stockList = config.stockList.where((i) => i.showInFloat).toList();
 
     timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
       refreshStockInfo();
@@ -36,7 +36,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       w = Window.of(context);
       w?.onData((source, name, data) async {
         var newConfig = AppConfig.fromJson(jsonDecode(data));
-        stockList = newConfig.stockList;
+        stockList = newConfig.stockList.where((i) => i.showInFloat).toList();
 
         setState(() {
           config = newConfig;
@@ -95,7 +95,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
               const Padding(
                 padding: EdgeInsets.all(3),
               ),
-              for (var stock in stockList.where((i) => i.showInFloat))
+              for (var stock in stockList)
                 Column(children: [
                   Text(generateStockText(stock),
                       style: const TextStyle(
@@ -103,7 +103,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
                         fontSize: 20,
                       ),
                       textAlign: TextAlign.left),
-                  const Divider(indent: 15),
+                  Offstage(offstage: (stock.key == stockList.last.key), child: const Divider(indent: 15)),
                 ])
             ])));
   }
