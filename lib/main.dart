@@ -56,7 +56,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Window windowConfig = WindowConfig(route: "/float", draggable: true, autosize: false).to();
+  Window window = WindowConfig(route: "/float", draggable: true, autosize: false).to();
 
   // 展示字段组建需要的数据
   final floatWindowColumn = ["名称", "代码", "价格", "涨跌幅"];
@@ -108,19 +108,19 @@ class _HomePageState extends State<HomePage> {
       if (context.mounted) {
         BrnToast.show("请配置悬浮窗权限", context);
       }
-      FloatwingPlugin().openPermissionSetting();
+      await FloatwingPlugin().openPermissionSetting();
       return;
     }
 
     var p2 = await FloatwingPlugin().isServiceRunning();
     if (!p2) {
-      FloatwingPlugin().startService();
+      await FloatwingPlugin().startService();
     }
-    var _w = FloatwingPlugin().windows[windowConfig.id];
+    var _w = FloatwingPlugin().windows[window.id];
     if (null != _w) {
       return;
     }
-    windowConfig.create();
+    await window.create(start: true);
   }
 
   void addNewStock(StockInfo stock) async {
@@ -143,18 +143,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
-    var showStockCount =  config.stockList.where((s) => s.showInFloat).length;
+    var showStockCount = config.stockList.where((s) => s.showInFloat).length;
     config.floatConfig.windowHeight = max(config.floatConfig.windowHeight, 40.0 * showStockCount / maxHeight);
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
     var result = await updateConfig(config);
-    if (context.mounted && notify) {
-      BrnToast.show("操作${result ? "成功" : "失败"}", context);
+    if (context.mounted && notify && !result) {
+      BrnToast.show("操作失败", context);
     }
-    FloatwingPlugin().windows[windowConfig.id]?.share(jsonEncode(config.toJson())).then((value) {
-      // and window can return value.
-      print("share then");
-    });
+    await FloatwingPlugin().windows[window.id]?.share(jsonEncode(config.toJson()));
     if (result) {
       setState(() {
         config = config;
@@ -229,14 +226,15 @@ class _HomePageState extends State<HomePage> {
   }
 
   void submitConfig() async {
-    windowConfig.config?.width = (config.floatConfig.windowWidth * config.floatConfig.screenWidth).toInt();
-    windowConfig.config?.height = (config.floatConfig.windowHeight * config.floatConfig.screenHeight).toInt();
+    window.config?.width = (config.floatConfig.windowWidth * config.floatConfig.screenWidth).toInt();
+    window.config?.height = (config.floatConfig.windowHeight * config.floatConfig.screenHeight).toInt();
     if (config.floatConfig.enable) {
-      checkFloatPermission();
-      windowConfig.start();
-      windowConfig.show();
+      await checkFloatPermission();
+      // windowConfig.start();
+      // var showResult = await window.show();
+      // BrnToast.show("showResult: $showResult", context);
     } else {
-      windowConfig.close();
+      // window.close();
     }
     updateConfigAndRefresh();
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:bruno/bruno.dart';
 import 'package:float_stock/entity.dart';
 import 'package:float_stock/utils.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
         ));
 
         if (newConfig.floatConfig.enable) {
+          var showResult = await w?.show();
+          BrnToast.show("showResult: $showResult", context);
         } else {
           w?.hide();
         }
