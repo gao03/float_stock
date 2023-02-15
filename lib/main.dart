@@ -143,7 +143,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
-    config.floatConfig.windowHeight = max(config.floatConfig.windowHeight, 40.0 * config.stockList.length / maxHeight);
+    var showStockCount =  config.stockList.where((s) => s.showInFloat).length;
+    config.floatConfig.windowHeight = max(config.floatConfig.windowHeight, 40.0 * showStockCount / maxHeight);
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
     var result = await updateConfig(config);
