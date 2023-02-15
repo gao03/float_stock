@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:float_stock/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'entity.g.dart';
@@ -80,18 +81,8 @@ class StockInfo extends ToJsonString {
 
   StockInfo({required this.code, required this.type, required this.name, this.price, this.showInFloat = true});
 
-  double? get showPrice {
-    // todo 支持盘前盘后
-    return price?.currentPrice;
-  }
-
   String get key {
-    return '$type${type == 'gb' ? '_' : ''}$code';
-  }
-
-  double? get showDiff {
-    // todo 支持盘前盘后
-    return price?.currentDiff;
+    return '$type$code';
   }
 
   factory StockInfo.fromJson(Map<String, dynamic> json) => _$StockInfoFromJson(json);

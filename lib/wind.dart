@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:float_stock/entity.dart';
+import 'package:float_stock/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
@@ -79,9 +80,41 @@ class _FloatWindowViewState extends State<FloatWindowView> {
 
   String getStockField(StockInfo stock, int index) {
     //["名称", "代码", "价格", "涨跌幅"];
-    var price = stock.showPrice?.toStringAsFixed(2) ?? '-';
-    var diff = stock.showDiff == null ? '-' : '${stock.showDiff!.toStringAsFixed(2)}%';
-    return [stock.name, stock.code, price, diff][index];
+    return [stock.name, stock.code, formatNum(getShowPrice(stock)), '${formatNum(getShowDiff(stock))}%'][index];
+  }
+
+  String formatNum(double? num) {
+    if (num == null) {
+      return '-';
+    }
+
+    // 有些情况下，数据是有3位小数的，这种时候要保留3位
+    var ln = num.toStringAsFixed(3);
+    if (ln[ln.length - 1] != '0') {
+      return ln;
+    }
+
+    return num.toStringAsFixed(2);
+  }
+
+  double? getShowPrice(StockInfo stock) {
+    if (stock.type != "gb_") {
+      return stock.price?.currentPrice;
+    }
+    if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
+      return stock.price?.outPrice;
+    }
+    return stock.price?.currentPrice;
+  }
+
+  double? getShowDiff(StockInfo stock) {
+    if (stock.type != "gb_") {
+      return stock.price?.currentDiff;
+    }
+    if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
+      return stock.price?.outDiff;
+    }
+    return stock.price?.currentDiff;
   }
 
   @override

@@ -78,11 +78,10 @@ class _HomePageState extends State<HomePage> {
   _createWindows() async {
     await FloatwingPlugin().initialize();
 
-    await FloatwingPlugin().isServiceRunning().then((v) async {
-      if (!v) {
-        await FloatwingPlugin().startService();
-      }
-    });
+    var isRunning = await FloatwingPlugin().isServiceRunning();
+    if (!isRunning) {
+      await FloatwingPlugin().startService();
+    }
 
     var _w = FloatwingPlugin().windows[windowConfig.id];
     if (null != _w) {
@@ -264,7 +263,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 SliderWidget(
                     title: "透明度",
-                    minValue: 0.05,
                     value: config.floatConfig.opacity,
                     onChanged: (data) {
                       setState(() {
@@ -286,6 +284,7 @@ class _HomePageState extends State<HomePage> {
                 SliderWidget(
                     title: "窗口高度",
                     minValue: 0.05,
+                    maxValue: 0.5,
                     value: config.floatConfig.windowHeight,
                     label: (config.floatConfig.windowHeight * maxHeight).toStringAsFixed(0),
                     onChanged: (data) {

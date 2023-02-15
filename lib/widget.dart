@@ -16,9 +16,16 @@ class SliderWidget extends StatelessWidget {
   final String? label;
 
   final double minValue;
+  final double maxValue;
 
   const SliderWidget(
-      {super.key, required this.title, required this.value, required this.onChanged, this.label, this.minValue = 0.0});
+      {super.key,
+      required this.title,
+      required this.value,
+      required this.onChanged,
+      this.label,
+      this.minValue = 0.0,
+      this.maxValue = 0.5});
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +41,7 @@ class SliderWidget extends StatelessWidget {
             value: max(min(value, 1.0), minValue),
             divisions: 100,
             min: minValue,
+            max:maxValue,
             onChanged: onChanged,
             label: label ?? '${(value * 100).round()}%',
           ),
