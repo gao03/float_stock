@@ -241,141 +241,138 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: Center(
-            heightFactor: 1,
-            child: Column(children: [
-              BrnNormalFormGroup(title: "悬浮窗配置", children: [
-                BrnSwitchFormItem(
-                  title: "是否启用",
-                  isRequire: false,
-                  value: config.floatConfig.enable,
-                  onChanged: (oldValue, newValue) {
-                    setState(() {
-                      config.floatConfig.enable = newValue;
-                    });
-                  },
-                ),
-                SliderWidget(
-                    title: "透明度",
-                    value: config.floatConfig.opacity,
-                    onChanged: (data) {
-                      setState(() {
-                        config.floatConfig.opacity = data;
-                        updateConfigAndRefresh();
-                      });
-                    }),
-                SliderWidget(
-                    title: "窗口宽度",
-                    minValue: 0.05,
-                    maxValue: 1,
-                    value: config.floatConfig.windowWidth,
-                    label: (config.floatConfig.windowWidth * maxWidth).toStringAsFixed(0),
-                    onChanged: (data) {
-                      setState(() {
-                        config.floatConfig.windowWidth = data;
-                        updateConfigAndRefresh();
-                      });
-                    }),
-                SliderWidget(
-                    title: "窗口高度",
-                    minValue: 0.05,
-                    maxValue: 1,
-                    value: config.floatConfig.windowHeight,
-                    onChanged: (data) {
-                      setState(() {
-                        config.floatConfig.windowHeight = data;
-                        updateConfigAndRefresh();
-                      });
-                    }),
-                BrnTextQuickSelectFormItem(
-                  title: "展示字段",
-                  btnsTxt: floatWindowColumn,
-                  value: floatSelectColumnStr,
-                  selectBtnList: floatWindowSelectColumnFlagList,
-                  onBtnSelectChanged: (int index) {
-                    setState(() {
-                      if (config.floatConfig.showColumns.contains(index)) {
-                        config.floatConfig.showColumns.remove(index);
-                      } else {
-                        config.floatConfig.showColumns.add(index);
-                      }
-                      floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
-                      updateConfigAndRefresh();
-                    });
-                  },
-                ),
-                BrnStepInputFormItem(
-                  value: config.floatConfig.frequency,
-                  title: "刷新频率(秒)",
-                  minLimit: 1,
-                  onChanged: (oldValue, newValue) {
-                    config.floatConfig.frequency = newValue;
-                    updateConfigAndRefresh();
-                  },
-                )
-              ]),
-              const Divider(indent: 5),
-              BrnNormalFormGroup(title: "股票信息", children: [
-                SizedBox(
-                  height: max(maxHeight - 616, 200),
-                  child: ReorderableListView(
-                      onReorder: (int oldIndex, int newIndex) {
-                        setState(() {
-                          if (oldIndex < newIndex) {
-                            newIndex -= 1;
-                          }
-                          var temp = config.stockList.removeAt(oldIndex);
-                          config.stockList.insert(newIndex, temp);
-                          updateConfigAndRefresh();
-                        });
-                      },
-                      children: [
-                        for (var stock in config.stockList)
-                          Dismissible(
-                              key: Key(stock.key),
-                              background: Container(color: Colors.red),
-                              direction: DismissDirection.endToStart,
-                              confirmDismiss: (direction) => deleteStock(stock),
-                              child: StockInfoWidget(
-                                  stock: stock,
-                                  onVisibleChange: (value) {
-                                    setState(() {
-                                      stock.showInFloat = value;
-                                      updateConfigAndRefresh();
-                                    });
-                                    BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
-                                  })),
-                        // Dismissible(
-                        //     key: Key(stock.key),
-                        //     background: Container(color: Colors.red),
-                        //     direction: DismissDirection.endToStart,
-                        //     confirmDismiss: (direction) => deleteStock(stock),
-                        //     child: BrnSwitchFormItem(
-                        //       title: stock.name,
-                        //       subTitle: stock.code,
-                        //       value: stock.showInFloat,
-                        //       isRequire: false,
-                        //       onChanged: (oldValue, newValue) {
-                        //         setState(() {
-                        //           stock.showInFloat = newValue;
-                        //           updateConfigAndRefresh();
-                        //         });
-                        //         BrnToast.show("在悬浮窗${newValue ? '' : '不'}展示${stock.name}", context);
-                        //       },
-                        //     )),
-                      ]),
-                )
-              ]),
-              BrnBottomButtonPanel(
-                mainButtonName: '确定',
-                mainButtonOnTap: updateConfigAndRefresh,
-                secondaryButtonName: '添加',
-                secondaryButtonOnTap: showStockInputDialog,
-              )
-            ])));
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(
+          child: SingleChildScrollView(
+              child: Column(children: [
+        BrnNormalFormGroup(title: "悬浮窗配置", children: [
+          BrnSwitchFormItem(
+            title: "是否启用",
+            isRequire: false,
+            value: config.floatConfig.enable,
+            onChanged: (oldValue, newValue) {
+              setState(() {
+                config.floatConfig.enable = newValue;
+              });
+            },
+          ),
+          SliderWidget(
+              title: "透明度",
+              value: config.floatConfig.opacity,
+              onChanged: (data) {
+                setState(() {
+                  config.floatConfig.opacity = data;
+                  updateConfigAndRefresh();
+                });
+              }),
+          SliderWidget(
+              title: "窗口宽度",
+              minValue: 0.05,
+              maxValue: 1,
+              value: config.floatConfig.windowWidth,
+              label: (config.floatConfig.windowWidth * maxWidth).toStringAsFixed(0),
+              onChanged: (data) {
+                setState(() {
+                  config.floatConfig.windowWidth = data;
+                  updateConfigAndRefresh();
+                });
+              }),
+          SliderWidget(
+              title: "窗口高度",
+              minValue: 0.05,
+              maxValue: 1,
+              value: config.floatConfig.windowHeight,
+              onChanged: (data) {
+                setState(() {
+                  config.floatConfig.windowHeight = data;
+                  updateConfigAndRefresh();
+                });
+              }),
+          BrnTextQuickSelectFormItem(
+            title: "展示字段",
+            btnsTxt: floatWindowColumn,
+            value: floatSelectColumnStr,
+            selectBtnList: floatWindowSelectColumnFlagList,
+            onBtnSelectChanged: (int index) {
+              setState(() {
+                if (config.floatConfig.showColumns.contains(index)) {
+                  config.floatConfig.showColumns.remove(index);
+                } else {
+                  config.floatConfig.showColumns.add(index);
+                }
+                floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
+                updateConfigAndRefresh();
+              });
+            },
+          ),
+          BrnStepInputFormItem(
+            value: config.floatConfig.frequency,
+            title: "刷新频率(秒)",
+            minLimit: 1,
+            onChanged: (oldValue, newValue) {
+              config.floatConfig.frequency = newValue;
+              updateConfigAndRefresh();
+            },
+          )
+        ]),
+        const Divider(indent: 5, color: Colors.white),
+        MyBrnNormalFormGroup(
+            title: "股票",
+            onReorder: (int oldIndex, int newIndex) {
+              setState(() {
+                if (oldIndex < newIndex) {
+                  newIndex -= 1;
+                }
+                var temp = config.stockList.removeAt(oldIndex);
+                config.stockList.insert(newIndex, temp);
+                updateConfigAndRefresh();
+              });
+            },
+            children: [
+              for (var stock in config.stockList)
+                Dismissible(
+                    key: Key(stock.key),
+                    background: Container(color: Colors.red),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) => deleteStock(stock),
+                    child: StockInfoWidget(
+                        stock: stock,
+                        onVisibleChange: (value) {
+                          setState(() {
+                            stock.showInFloat = value;
+                            updateConfigAndRefresh();
+                          });
+                          BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
+                        })),
+              // Dismissible(
+              //     key: Key(stock.key),
+              //     background: Container(color: Colors.red),
+              //     direction: DismissDirection.endToStart,
+              //     confirmDismiss: (direction) => deleteStock(stock),
+              //     child: BrnSwitchFormItem(
+              //       title: stock.name,
+              //       subTitle: stock.code,
+              //       value: stock.showInFloat,
+              //       isRequire: false,
+              //       onChanged: (oldValue, newValue) {
+              //         setState(() {
+              //           stock.showInFloat = newValue;
+              //           updateConfigAndRefresh();
+              //         });
+              //         BrnToast.show("在悬浮窗${newValue ? '' : '不'}展示${stock.name}", context);
+              //       },
+              //     )),
+            ]),
+      ]))),
+      bottomSheet: BrnBottomButtonPanel(
+        mainButtonName: '确定',
+        mainButtonOnTap: updateConfigAndRefresh,
+        secondaryButtonName: '添加',
+        secondaryButtonOnTap: showStockInputDialog,
+      ),
+    );
   }
 }
