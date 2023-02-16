@@ -21,49 +21,42 @@ class FloatWindowView extends StatefulWidget {
 
 class _FloatWindowViewState extends State<FloatWindowView> {
   late AppConfig config;
-  late Timer timer;
+  Timer? timer;
   late List<StockInfo> stockList;
+
+  final int stockHeightBase = 800;
 
   @override
   void initState() {
     super.initState();
-    config = widget.config;
-    stockList = config.stockList.where((i) => i.showInFloat).toList();
-
-    timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
-      refreshStockInfo();
+    refresh(widget.config);
+    Timer(const Duration(seconds: 1), () {
+      refresh(widget.config);
     });
-
     SchedulerBinding.instance.addPostFrameCallback((_) {
       w = Window.of(context);
       w?.onData((source, name, data) async {
-        var newConfig = AppConfig.fromJson(jsonDecode(data));
-        stockList = newConfig.stockList.where((i) => i.showInFloat).toList();
-
-        setState(() {
-          config = newConfig;
-        });
-
-        var screenHeight = w?.system?.screenHeight ?? newConfig.floatConfig.screenHeight;
-        var screenWidth = w?.system?.screenWidth ?? newConfig.floatConfig.screenWidth;
-        w?.update(WindowConfig(
-          height: (newConfig.floatConfig.windowHeight * screenHeight).toInt(),
-          width: (newConfig.floatConfig.windowWidth * screenWidth).toInt(),
-        ));
-
-        if (newConfig.floatConfig.enable) {
-          var showResult = await w?.show();
-          BrnToast.show("showResult: $showResult", context);
-        } else {
-          w?.hide();
-        }
-
-        timer.cancel();
-        timer = Timer.periodic(Duration(seconds: newConfig.floatConfig.frequency), (timer) {
-          refreshStockInfo();
-        });
-        refreshStockInfo();
+        refresh(AppConfig.fromJson(jsonDecode(data)));
       });
+    });
+  }
+
+  void refresh(AppConfig newConfig) async {
+    setState(() {
+      config = newConfig;
+      stockList = config.stockList.where((i) => i.showInFloat).toList();
+    });
+    await w?.show(visible: newConfig.floatConfig.enable);
+    // var screenHeight = w?.system?.screenHeight ?? newConfig.floatConfig.screenHeight;
+    var screenWidth = w?.system?.screenWidth ?? newConfig.floatConfig.screenWidth;
+    await w?.update(WindowConfig(
+      height: (newConfig.floatConfig.windowHeight * stockHeightBase * stockList.length).toInt(),
+      width: (newConfig.floatConfig.windowWidth * screenWidth).toInt(),
+    ));
+
+    timer?.cancel();
+    timer = Timer.periodic(Duration(seconds: newConfig.floatConfig.frequency), (timer) {
+      refreshStockInfo();
     });
   }
 
@@ -86,45 +79,11 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     return [stock.name, stock.code, formatNum(getShowPrice(stock)), '${formatNum(getShowDiff(stock))}%'][index];
   }
 
-  String formatNum(double? num) {
-    if (num == null) {
-      return '-';
-    }
-
-    // 有些情况下，数据是有3位小数的，这种时候要保留3位
-    var ln = num.toStringAsFixed(3);
-    if (ln[ln.length - 1] != '0') {
-      return ln;
-    }
-
-    return num.toStringAsFixed(2);
-  }
-
-  double? getShowPrice(StockInfo stock) {
-    if (stock.type != "gb_") {
-      return stock.price?.currentPrice;
-    }
-    if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
-      return stock.price?.outPrice;
-    }
-    return stock.price?.currentPrice;
-  }
-
-  double? getShowDiff(StockInfo stock) {
-    if (stock.type != "gb_") {
-      return stock.price?.currentDiff;
-    }
-    if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
-      return stock.price?.outDiff;
-    }
-    return stock.price?.currentDiff;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
         width: config.floatConfig.windowWidth * config.floatConfig.screenWidth,
-        height: config.floatConfig.windowHeight * config.floatConfig.screenHeight,
+        height: config.floatConfig.windowHeight * stockHeightBase * stockList.length,
         // color: Colors.white.withOpacity(config.floatConfig.opacity),
         child: Card(
             elevation: 0,
@@ -140,6 +99,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
                         color: Colors.black,
                         fontSize: 20,
                       ),
+                      overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.left),
                   Offstage(offstage: (stock.key == stockList.last.key), child: const Divider(indent: 15)),
                 ])

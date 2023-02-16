@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:bruno/bruno.dart';
 import 'package:float_stock/api.dart';
 import 'package:float_stock/config.dart';
+import 'package:float_stock/data.dart';
 import 'package:float_stock/utils.dart';
 import 'package:float_stock/widget.dart';
 import 'package:float_stock/wind.dart';
@@ -56,12 +57,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Window window = WindowConfig(route: "/float", draggable: true, autosize: false).to();
+  Window window = WindowConfig(
+    route: "/float",
+    draggable: true,
+    autosize: false,
+    y: 100,
+  ).to();
 
   // 展示字段组建需要的数据
   final floatWindowColumn = ["名称", "代码", "价格", "涨跌幅"];
-  String floatSelectColumnStr = '';
-  late List<bool> floatWindowSelectColumnFlagList = List.filled(floatWindowColumn.length, false);
+  late List<bool> floatWindowSelectColumnFlagList;
 
   double? _maxHeight;
   double? _maxWidth;
@@ -69,19 +74,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
-    updateUiHelperVar();
-
+    floatWindowSelectColumnFlagList = getFloatWindowSelectColumnFlagList();
     _createWindows();
   }
 
   _createWindows() async {
     await FloatwingPlugin().initialize();
-
     var isRunning = await FloatwingPlugin().isServiceRunning();
     if (!isRunning) {
       await FloatwingPlugin().startService();
     }
+    await checkAndShowWindow();
   }
 
   double get maxHeight {
@@ -94,11 +97,13 @@ class _HomePageState extends State<HomePage> {
     return _maxWidth!;
   }
 
-  void updateUiHelperVar() {
-    for (var i = 0; i < floatWindowColumn.length; i++) {
-      floatWindowSelectColumnFlagList[i] = config.floatConfig.showColumns.contains(i);
-    }
-    floatSelectColumnStr = config.floatConfig.showColumns.map((e) => floatWindowColumn[e]).toList().join(",");
+  List<bool> getFloatWindowSelectColumnFlagList() {
+    print('showColumns: ${config.floatConfig.showColumns}');
+    return floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
+  }
+
+  String get floatSelectColumnStr {
+    return config.floatConfig.showColumns.map((e) => floatWindowColumn[e]).toList().join(",");
   }
 
   checkFloatPermission() async {
@@ -125,9 +130,12 @@ class _HomePageState extends State<HomePage> {
 
   void addNewStock(StockInfo stock) async {
     var oldStock = config.stockList.firstWhereOrNull((e) => e.key == stock.key);
-    if (oldStock == null) {
-      config.stockList.add(stock);
+    if (oldStock != null) {
       BrnToast.show("${stock.name}已经在列表中了", context);
+      // 添加的时候，默认展示在悬浮窗
+      oldStock.showInFloat = true;
+    } else {
+      config.stockList.add(stock);
     }
     await updateConfigAndRefresh();
   }
@@ -143,21 +151,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
-    var showStockCount = config.stockList.where((s) => s.showInFloat).length;
-    config.floatConfig.windowHeight = max(config.floatConfig.windowHeight, 40.0 * showStockCount / maxHeight);
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
+
+    config.stockList = await getStockLatestInfo(config.stockList);
+
     var result = await updateConfig(config);
     if (context.mounted && notify && !result) {
       BrnToast.show("操作失败", context);
     }
-    await FloatwingPlugin().windows[window.id]?.share(jsonEncode(config.toJson()));
-    if (result) {
-      setState(() {
-        config = config;
-        updateUiHelperVar();
-      });
+    await checkAndShowWindow();
+    setState(() {
+      config = config;
+    });
+  }
+
+  Future<void> checkAndShowWindow() async {
+    if (config.floatConfig.enable) {
+      await checkFloatPermission();
     }
+    await FloatwingPlugin().windows[window.id]?.share(jsonEncode(config.toJson()));
   }
 
   Future<StockInfo?> chooseNewStock(List<StockInfo> stockList) async {
@@ -225,20 +238,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void submitConfig() async {
-    window.config?.width = (config.floatConfig.windowWidth * config.floatConfig.screenWidth).toInt();
-    window.config?.height = (config.floatConfig.windowHeight * config.floatConfig.screenHeight).toInt();
-    if (config.floatConfig.enable) {
-      await checkFloatPermission();
-      // windowConfig.start();
-      // var showResult = await window.show();
-      // BrnToast.show("showResult: $showResult", context);
-    } else {
-      // window.close();
-    }
-    updateConfigAndRefresh();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,6 +271,7 @@ class _HomePageState extends State<HomePage> {
                 SliderWidget(
                     title: "窗口宽度",
                     minValue: 0.05,
+                    maxValue: 1,
                     value: config.floatConfig.windowWidth,
                     label: (config.floatConfig.windowWidth * maxWidth).toStringAsFixed(0),
                     onChanged: (data) {
@@ -283,9 +283,8 @@ class _HomePageState extends State<HomePage> {
                 SliderWidget(
                     title: "窗口高度",
                     minValue: 0.05,
-                    maxValue: 0.5,
+                    maxValue: 1,
                     value: config.floatConfig.windowHeight,
-                    label: (config.floatConfig.windowHeight * maxHeight).toStringAsFixed(0),
                     onChanged: (data) {
                       setState(() {
                         config.floatConfig.windowHeight = data;
@@ -341,29 +340,39 @@ class _HomePageState extends State<HomePage> {
                               background: Container(color: Colors.red),
                               direction: DismissDirection.endToStart,
                               confirmDismiss: (direction) => deleteStock(stock),
-                              child: BrnSwitchFormItem(
-                                title: stock.name,
-                                subTitle: stock.code,
-                                value: stock.showInFloat,
-                                // prefixIconType: BrnPrefixIconType.remove,
-                                isRequire: false,
-                                onRemoveTap: () {
-                                  deleteStock(stock);
-                                },
-                                onChanged: (oldValue, newValue) {
-                                  setState(() {
-                                    stock.showInFloat = newValue;
-                                    updateConfigAndRefresh();
-                                  });
-                                  BrnToast.show("在悬浮窗${newValue ? '' : '不'}展示${stock.name}", context);
-                                },
-                              ))
+                              child: StockInfoWidget(
+                                  stock: stock,
+                                  onVisibleChange: (value) {
+                                    setState(() {
+                                      stock.showInFloat = value;
+                                      updateConfigAndRefresh();
+                                    });
+                                    BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
+                                  })),
+                        // Dismissible(
+                        //     key: Key(stock.key),
+                        //     background: Container(color: Colors.red),
+                        //     direction: DismissDirection.endToStart,
+                        //     confirmDismiss: (direction) => deleteStock(stock),
+                        //     child: BrnSwitchFormItem(
+                        //       title: stock.name,
+                        //       subTitle: stock.code,
+                        //       value: stock.showInFloat,
+                        //       isRequire: false,
+                        //       onChanged: (oldValue, newValue) {
+                        //         setState(() {
+                        //           stock.showInFloat = newValue;
+                        //           updateConfigAndRefresh();
+                        //         });
+                        //         BrnToast.show("在悬浮窗${newValue ? '' : '不'}展示${stock.name}", context);
+                        //       },
+                        //     )),
                       ]),
                 )
               ]),
               BrnBottomButtonPanel(
                 mainButtonName: '确定',
-                mainButtonOnTap: submitConfig,
+                mainButtonOnTap: updateConfigAndRefresh,
                 secondaryButtonName: '添加',
                 secondaryButtonOnTap: showStockInputDialog,
               )

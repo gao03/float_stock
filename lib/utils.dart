@@ -2,6 +2,8 @@ import 'package:bruno/bruno.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'entity.dart';
+
 void showLoadingDialog(BuildContext context, String message) {
   BrnLoadingDialog.show(context, content: message);
 }
@@ -185,4 +187,38 @@ bool isWinterTime(DateTime dt) {
     return true;
   }
   return false;
+}
+
+double? getShowPrice(StockInfo stock) {
+  if (stock.type != "gb_") {
+    return stock.price?.currentPrice;
+  }
+  if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
+    return stock.price?.outPrice;
+  }
+  return stock.price?.currentPrice;
+}
+
+double? getShowDiff(StockInfo stock) {
+  if (stock.type != "gb_") {
+    return stock.price?.currentDiff;
+  }
+  if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
+    return stock.price?.outDiff;
+  }
+  return stock.price?.currentDiff;
+}
+
+String formatNum(double? num) {
+  if (num == null) {
+    return '-';
+  }
+
+  // 有些情况下，数据是有3位小数的，这种时候要保留3位
+  var ln = num.toStringAsFixed(3);
+  if (ln[ln.length - 1] != '0') {
+    return ln;
+  }
+
+  return num.toStringAsFixed(2);
 }
