@@ -24,11 +24,12 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   Timer? timer;
   late List<StockInfo> stockList;
 
-  final int stockHeightBase = 800;
+  final int stockHeightBase = 500;
 
   @override
   void initState() {
     super.initState();
+    config = widget.config;
     refresh(widget.config);
     Timer(const Duration(seconds: 1), () {
       refresh(widget.config);
@@ -42,6 +43,10 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   }
 
   void refresh(AppConfig newConfig) async {
+    var stockMap = {for (var e in config.stockList) e.key: e};
+    for (var stock in newConfig.stockList) {
+      stock.price = stockMap[stock.key]?.price;
+    }
     setState(() {
       config = newConfig;
       stockList = config.stockList.where((i) => i.showInFloat).toList();
@@ -58,6 +63,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     timer = Timer.periodic(Duration(seconds: newConfig.floatConfig.frequency), (timer) {
       refreshStockInfo();
     });
+    refreshStockInfo();
   }
 
   void refreshStockInfo() async {
