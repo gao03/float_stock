@@ -76,7 +76,7 @@ class StockInfo extends ToJsonString {
   String type;
   String name;
   bool showInFloat;
-  @JsonKey(includeFromJson: false)
+  // @JsonKey(includeFromJson: false)
   StockRtInfo? price;
 
   StockInfo({required this.code, required this.type, required this.name, this.price, this.showInFloat = true});

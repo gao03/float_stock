@@ -11,9 +11,9 @@ import 'package:flutter_floatwing/flutter_floatwing.dart';
 import 'data.dart';
 
 class FloatWindowView extends StatefulWidget {
-  AppConfig config;
+  final AppConfig config;
 
-  FloatWindowView({Key? key, required this.config}) : super(key: key);
+  const FloatWindowView({Key? key, required this.config}) : super(key: key);
 
   @override
   State<FloatWindowView> createState() => _FloatWindowViewState();
@@ -24,20 +24,29 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   Timer? timer;
   late List<StockInfo> stockList;
 
-  final int stockHeightBase = 500;
+  final int stockHeightBase = 400;
 
   @override
   void initState() {
     super.initState();
     config = widget.config;
-    refresh(widget.config);
-    Timer(const Duration(seconds: 1), () {
-      refresh(widget.config);
-    });
+    stockList = config.stockList.where((i) => i.showInFloat).toList();
+
+    // refresh(widget.config);
+    // Timer(const Duration(seconds: 1), () {
+    //   refresh(widget.config);
+    // });
     SchedulerBinding.instance.addPostFrameCallback((_) {
       w = Window.of(context);
       w?.onData((source, name, data) async {
-        refresh(AppConfig.fromJson(jsonDecode(data)));
+        if (name == "config") {
+          refresh(AppConfig.fromJson(jsonDecode(data)));
+        } else if (name == "stockList") {
+          var newData = (json.decode(data) as List).map((data) => StockInfo.fromJson(data)).toList();
+          setState(() {
+            stockList = newData;
+          });
+        }
       });
     });
   }
@@ -59,11 +68,11 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       width: (newConfig.floatConfig.windowWidth * screenWidth).toInt(),
     ));
 
-    timer?.cancel();
-    timer = Timer.periodic(Duration(seconds: newConfig.floatConfig.frequency), (timer) {
-      refreshStockInfo();
-    });
-    refreshStockInfo();
+    // timer?.cancel();
+    // timer = Timer.periodic(Duration(seconds: newConfig.floatConfig.frequency), (timer) {
+    //   refreshStockInfo();
+    // });
+    // refreshStockInfo();
   }
 
   void refreshStockInfo() async {

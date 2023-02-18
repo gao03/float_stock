@@ -22,7 +22,7 @@ Future<AppConfig> readConfig() async {
           showColumns: [],
           frequency: 2,
           windowHeight: 0.2,
-          windowWidth: 0.2,
+          windowWidth: 0.4,
           screenHeight: 1000,
           screenWidth: 800),
       []);

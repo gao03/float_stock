@@ -58,6 +58,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Window window = WindowConfig(
+    id: "float",
     route: "/float",
     draggable: true,
     autosize: false,
@@ -70,12 +71,33 @@ class _HomePageState extends State<HomePage> {
 
   double? _maxHeight;
   double? _maxWidth;
+  Timer? timer;
 
   @override
   void initState() {
     super.initState();
-    floatWindowSelectColumnFlagList = getFloatWindowSelectColumnFlagList();
-    _createWindows();
+    floatWindowSelectColumnFlagList =
+        floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
+    initStateAsync();
+  }
+
+  void initStateAsync() async {
+    await _createWindows();
+
+    Timer(const Duration(seconds: 5), () {
+      timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
+        refreshStockData();
+      });
+    });
+  }
+
+  void refreshStockData() async {
+    var newStockData = await getStockLatestInfo(config.stockList);
+    setState(() {
+      config.stockList = newStockData;
+    });
+    var stockListStr = newStockData.where((i) => i.showInFloat).map((e) => e.toJson()).toList();
+    await shareDataToFloat(stockListStr, "stockList");
   }
 
   _createWindows() async {
@@ -95,11 +117,6 @@ class _HomePageState extends State<HomePage> {
   double get maxWidth {
     _maxWidth ??= MediaQuery.of(context).size.width;
     return _maxWidth!;
-  }
-
-  List<bool> getFloatWindowSelectColumnFlagList() {
-    print('showColumns: ${config.floatConfig.showColumns}');
-    return floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
   }
 
   String get floatSelectColumnStr {
@@ -154,18 +171,26 @@ class _HomePageState extends State<HomePage> {
   Future updateConfigAndRefresh({notify = true}) async {
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
+    config.stockList.sort((a, b) => a.showInFloat == b.showInFloat
+        ? 0
+        : a.showInFloat
+            ? -1
+            : 1);
 
-    config.stockList = await getStockLatestInfo(config.stockList);
     await checkFloatPermission();
 
     var result = await updateConfig(config);
     if (context.mounted && notify && !result) {
       BrnToast.show("操作失败", context);
     }
-    await checkAndShowWindow();
-    setState(() {
-      config = config;
+
+    timer?.cancel();
+    timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
+      refreshStockData();
     });
+
+    await checkAndShowWindow();
+    setState(() {});
   }
 
   Future<void> checkAndShowWindow() async {
@@ -187,7 +212,15 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    await FloatwingPlugin().windows[window.id]?.share(jsonEncode(config.toJson()));
+    await shareDataToFloat(config.toJson(), "config");
+  }
+
+  Future<void> shareDataToFloat(dynamic data, String name) async {
+    try {
+      return FloatwingPlugin().windows[window.id]?.share(jsonEncode(data), name: name);
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<StockInfo?> chooseNewStock(List<StockInfo> stockList) async {
@@ -331,6 +364,7 @@ class _HomePageState extends State<HomePage> {
                     value: config.floatConfig.frequency,
                     title: "刷新频率(秒)",
                     minLimit: 1,
+                    maxLimit: 100,
                     onChanged: (oldValue, newValue) {
                       config.floatConfig.frequency = newValue;
                       updateConfigAndRefresh();

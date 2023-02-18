@@ -55,7 +55,6 @@ class SliderWidget extends StatelessWidget {
 }
 
 class StockInfoWidget extends StatelessWidget {
-  /// 标题
   final StockInfo stock;
 
   final ValueChanged<bool>? onVisibleChange;

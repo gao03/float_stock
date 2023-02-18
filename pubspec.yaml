@@ -32,12 +32,13 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_floatwing: 0.2.1
-  flutter_form_builder: 7.7.0
   dio: ^4.0.6
   gbk_codec: 0.4.0
   bruno: 3.3.0
   json_annotation: ^4.8.0
   shared_preferences: ^2.0.17
+  memory_cache: ^1.2.0
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2

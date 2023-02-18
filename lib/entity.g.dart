@@ -59,6 +59,9 @@ StockInfo _$StockInfoFromJson(Map<String, dynamic> json) => StockInfo(
       code: json['code'] as String,
       type: json['type'] as String,
       name: json['name'] as String,
+      price: json['price'] == null
+          ? null
+          : StockRtInfo.fromJson(json['price'] as Map<String, dynamic>),
       showInFloat: json['showInFloat'] as bool? ?? true,
     );
 
@@ -67,6 +70,7 @@ Map<String, dynamic> _$StockInfoToJson(StockInfo instance) => <String, dynamic>{
       'type': instance.type,
       'name': instance.name,
       'showInFloat': instance.showInFloat,
+      'price': instance.price,
     };
 
 AppConfig _$AppConfigFromJson(Map<String, dynamic> json) => AppConfig(
