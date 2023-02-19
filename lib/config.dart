@@ -24,7 +24,9 @@ Future<AppConfig> readConfig() async {
           windowHeight: 0.2,
           windowWidth: 0.4,
           screenHeight: 1000,
-          screenWidth: 800),
+          screenWidth: 800,
+          fontSize: 20,
+      fontColorType: "黑色"),
       []);
 }
 

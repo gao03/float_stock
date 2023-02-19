@@ -24,6 +24,8 @@ class FloatConfig extends ToJsonString {
   double windowWidth;
   double screenHeight;
   double screenWidth;
+  double fontSize;
+  String fontColorType;
 
   FloatConfig(
       {required this.enable,
@@ -33,7 +35,9 @@ class FloatConfig extends ToJsonString {
       required this.windowHeight,
       required this.windowWidth,
       required this.screenHeight,
-      required this.screenWidth});
+      required this.screenWidth,
+      this.fontSize = 20,
+      this.fontColorType = ""});
 
   factory FloatConfig.fromJson(Map<String, dynamic> json) => _$FloatConfigFromJson(json);
 
@@ -43,14 +47,18 @@ class FloatConfig extends ToJsonString {
 
 @JsonSerializable()
 class StockRtInfo extends ToJsonString {
-  String name;
   double? currentPrice;
   double? currentDiff;
-  double? basePrice;
-  double? openPrice;
   double? outPrice;
   double? outDiff;
+  String name;
+  @JsonKey(includeFromJson: false)
+  double? basePrice;
+  @JsonKey(includeFromJson: false)
+  double? openPrice;
+  @JsonKey(includeFromJson: false)
   double? highestPrice;
+  @JsonKey(includeFromJson: false)
   double? lowestPrice;
 
   StockRtInfo(
@@ -76,7 +84,6 @@ class StockInfo extends ToJsonString {
   String type;
   String name;
   bool showInFloat;
-  // @JsonKey(includeFromJson: false)
   StockRtInfo? price;
 
   StockInfo({required this.code, required this.type, required this.name, this.price, this.showInFloat = true});

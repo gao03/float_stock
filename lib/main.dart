@@ -14,6 +14,7 @@ import 'package:float_stock/entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/rendering.dart';
 
 late AppConfig config;
 
@@ -32,6 +33,7 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPaintSizeEnabled = false;
     return MaterialApp(
       title: '盯盘',
       debugShowCheckedModeBanner: false,
@@ -72,6 +74,8 @@ class _HomePageState extends State<HomePage> {
   double? _maxHeight;
   double? _maxWidth;
   Timer? timer;
+
+  GlobalKey fontColorTypeKey = GlobalKey();
 
   @override
   void initState() {
@@ -196,20 +200,20 @@ class _HomePageState extends State<HomePage> {
   Future<void> checkAndShowWindow() async {
     if (config.floatConfig.enable) {
       await checkFloatPermission();
-      var showStockCount = config.stockList.where((i) => i.showInFloat).length;
-      var showColumnCount = config.floatConfig.showColumns.length;
-      if (showStockCount == 0) {
-        if (context.mounted) {
-          BrnToast.show("可显示股票为空，不开启悬浮窗", context);
-        }
-        return;
-      }
-      if (showColumnCount == 0) {
-        if (context.mounted) {
-          BrnToast.show("可显示字段为空，不开启悬浮窗", context);
-        }
-        return;
-      }
+      // var showStockCount = config.stockList.where((i) => i.showInFloat).length;
+      // var showColumnCount = config.floatConfig.showColumns.length;
+      // if (showStockCount == 0) {
+      //   if (context.mounted) {
+      //     BrnToast.show("可显示股票为空，不开启悬浮窗", context);
+      //   }
+      //   return;
+      // }
+      // if (showColumnCount == 0) {
+      //   if (context.mounted) {
+      //     BrnToast.show("可显示字段为空，不开启悬浮窗", context);
+      //   }
+      //   return;
+      // }
     }
 
     await shareDataToFloat(config.toJson(), "config");
@@ -288,6 +292,11 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void setStateAndSave(VoidCallback fn) {
+    setState(fn);
+    updateConfigAndRefresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -300,24 +309,23 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
                   child: Column(children: [
-                BrnNormalFormGroup(title: "悬浮窗配置", children: [
+                NormalFormGroup(title: "悬浮窗配置", children: [
                   BrnSwitchFormItem(
                     title: "是否启用",
                     isRequire: false,
                     value: config.floatConfig.enable,
                     onChanged: (oldValue, newValue) {
-                      setState(() {
+                      setStateAndSave(() {
                         config.floatConfig.enable = newValue;
                       });
                     },
                   ),
                   SliderWidget(
-                      title: "透明度",
+                      title: "透明度   ",
                       value: config.floatConfig.opacity,
                       onChanged: (data) {
-                        setState(() {
+                        setStateAndSave(() {
                           config.floatConfig.opacity = data;
-                          updateConfigAndRefresh();
                         });
                       }),
                   SliderWidget(
@@ -327,9 +335,8 @@ class _HomePageState extends State<HomePage> {
                       value: config.floatConfig.windowWidth,
                       label: (config.floatConfig.windowWidth * maxWidth).toStringAsFixed(0),
                       onChanged: (data) {
-                        setState(() {
+                        setStateAndSave(() {
                           config.floatConfig.windowWidth = data;
-                          updateConfigAndRefresh();
                         });
                       }),
                   SliderWidget(
@@ -338,50 +345,73 @@ class _HomePageState extends State<HomePage> {
                       maxValue: 1,
                       value: config.floatConfig.windowHeight,
                       onChanged: (data) {
-                        setState(() {
+                        setStateAndSave(() {
                           config.floatConfig.windowHeight = data;
-                          updateConfigAndRefresh();
                         });
                       }),
+                  SliderWidget(
+                      title: "字体大小",
+                      minValue: 10,
+                      maxValue: 60,
+                      value: config.floatConfig.fontSize,
+                      label: config.floatConfig.fontSize.toStringAsFixed(1),
+                      onChanged: (data) {
+                        setStateAndSave(() {
+                          config.floatConfig.fontSize = data;
+                        });
+                      }),
+                  SliderWidget(
+                    value: config.floatConfig.frequency.toDouble(),
+                    title: "刷新频率",
+                    minValue: 1,
+                    maxValue: 100,
+                    label: "${config.floatConfig.frequency.toInt()}秒",
+                    onChanged: (data) {
+                      setStateAndSave(() {
+                        config.floatConfig.frequency = data.toInt();
+                      });
+                    },
+                  ),
+                  BrnRadioInputFormItem(
+                    key:fontColorTypeKey,
+                    title: "字体颜色",
+                    options: const ["黑色", "当日涨跌", "同比涨跌"],
+                    value: config.floatConfig.fontColorType,
+                    onChanged: (oldValue, newValue) {
+                      if (newValue != null) {
+                        setStateAndSave(() {
+                          config.floatConfig.fontColorType = newValue;
+                        });
+                      }
+                    },
+                  ),
                   BrnTextQuickSelectFormItem(
                     title: "展示字段",
                     btnsTxt: floatWindowColumn,
                     value: floatSelectColumnStr,
                     selectBtnList: floatWindowSelectColumnFlagList,
                     onBtnSelectChanged: (int index) {
-                      setState(() {
+                      setStateAndSave(() {
                         if (config.floatConfig.showColumns.contains(index)) {
                           config.floatConfig.showColumns.remove(index);
                         } else {
                           config.floatConfig.showColumns.add(index);
                         }
                         floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
-                        updateConfigAndRefresh();
                       });
                     },
                   ),
-                  BrnStepInputFormItem(
-                    value: config.floatConfig.frequency,
-                    title: "刷新频率(秒)",
-                    minLimit: 1,
-                    maxLimit: 100,
-                    onChanged: (oldValue, newValue) {
-                      config.floatConfig.frequency = newValue;
-                      updateConfigAndRefresh();
-                    },
-                  )
                 ]),
                 const Divider(indent: 5, color: Colors.white),
                 NormalFormGroup(
                     title: "股票",
                     onReorder: (int oldIndex, int newIndex) {
-                      setState(() {
+                      setStateAndSave(() {
                         if (oldIndex < newIndex) {
                           newIndex -= 1;
                         }
                         var temp = config.stockList.removeAt(oldIndex);
                         config.stockList.insert(newIndex, temp);
-                        updateConfigAndRefresh();
                       });
                     },
                     children: [
@@ -394,9 +424,8 @@ class _HomePageState extends State<HomePage> {
                             child: StockInfoWidget(
                                 stock: stock,
                                 onVisibleChange: (value) {
-                                  setState(() {
+                                  setStateAndSave(() {
                                     stock.showInFloat = value;
-                                    updateConfigAndRefresh();
                                   });
                                   BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
                                 })),

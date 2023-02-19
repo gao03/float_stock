@@ -35,13 +35,17 @@ class SliderWidget extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: Text(title, style: BrnFormItemConfig().titleTextStyle.generateTextStyle()),
-        ),
         Expanded(
+            flex: 20,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Text(title,
+                  style: BrnFormItemConfig().titleTextStyle.generateTextStyle(), overflow: TextOverflow.ellipsis),
+            )),
+        Expanded(
+          flex: 50,
           child: Slider(
-            value: max(min(value, 1.0), minValue),
+            value: max(min(value, maxValue), minValue),
             divisions: 100,
             min: minValue,
             max: maxValue,
@@ -49,6 +53,7 @@ class SliderWidget extends StatelessWidget {
             label: label ?? '${(value * 100).round()}',
           ),
         ),
+        Expanded(flex: 10, child: Text(label ?? '${(value * 100).round()}')),
       ],
     );
   }
@@ -165,14 +170,14 @@ class NormalFormGroup extends StatefulWidget {
   /// form配置
   final BrnFormItemConfig themeData = BrnFormItemConfig();
 
-  final ReorderCallback onReorder;
+  final ReorderCallback? onReorder;
 
   NormalFormGroup({
     Key? key,
     this.label,
     this.title = "",
     required this.children,
-    required this.onReorder,
+    this.onReorder,
   }) : super(key: key);
 
   @override
@@ -209,10 +214,15 @@ class NormalFormGroupState extends State<NormalFormGroup> {
             ],
           ),
           ReorderableListView(
+            buildDefaultDragHandles: widget.onReorder != null,
             shrinkWrap: true,
             padding: const EdgeInsets.only(top: 4),
             physics: const NeverScrollableScrollPhysics(),
-            onReorder: widget.onReorder,
+            onReorder: (int oldIndex, int newIndex) {
+              if (widget.onReorder != null) {
+                widget.onReorder!(oldIndex, newIndex);
+              }
+            },
             children: getSubItem(),
           ),
         ],
@@ -223,14 +233,14 @@ class NormalFormGroupState extends State<NormalFormGroup> {
   List<Widget> getSubItem() {
     List<Widget> result = <Widget>[];
 
-    for (Widget w in widget.children) {
+    for (var entry in widget.children.asMap().entries) {
       result.add(Column(
-        key: w.key,
-        children: [BrnLine(), w],
+        key: entry.value.key ?? Key('${entry.key}'),
+        children: [BrnLine(), entry.value],
       ));
     }
 
-    if (result.isNotEmpty) {
+    if (result.isNotEmpty && widget.onReorder != null) {
       result.add(const SizedBox(height: 80, key: Key("expanded")));
     }
 

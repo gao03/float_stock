@@ -16,6 +16,8 @@ FloatConfig _$FloatConfigFromJson(Map<String, dynamic> json) => FloatConfig(
       windowWidth: (json['windowWidth'] as num).toDouble(),
       screenHeight: (json['screenHeight'] as num).toDouble(),
       screenWidth: (json['screenWidth'] as num).toDouble(),
+      fontSize: (json['fontSize'] as num?)?.toDouble() ?? 20,
+      fontColorType: json['fontColorType'] as String? ?? "",
     );
 
 Map<String, dynamic> _$FloatConfigToJson(FloatConfig instance) =>
@@ -28,31 +30,25 @@ Map<String, dynamic> _$FloatConfigToJson(FloatConfig instance) =>
       'windowWidth': instance.windowWidth,
       'screenHeight': instance.screenHeight,
       'screenWidth': instance.screenWidth,
+      'fontSize': instance.fontSize,
+      'fontColorType': instance.fontColorType,
     };
 
 StockRtInfo _$StockRtInfoFromJson(Map<String, dynamic> json) => StockRtInfo(
       name: json['name'] as String,
       currentPrice: (json['currentPrice'] as num?)?.toDouble(),
       currentDiff: (json['currentDiff'] as num?)?.toDouble(),
-      basePrice: (json['basePrice'] as num?)?.toDouble(),
-      openPrice: (json['openPrice'] as num?)?.toDouble(),
       outPrice: (json['outPrice'] as num?)?.toDouble(),
       outDiff: (json['outDiff'] as num?)?.toDouble(),
-      highestPrice: (json['highestPrice'] as num?)?.toDouble(),
-      lowestPrice: (json['lowestPrice'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$StockRtInfoToJson(StockRtInfo instance) =>
     <String, dynamic>{
-      'name': instance.name,
       'currentPrice': instance.currentPrice,
       'currentDiff': instance.currentDiff,
-      'basePrice': instance.basePrice,
-      'openPrice': instance.openPrice,
       'outPrice': instance.outPrice,
       'outDiff': instance.outDiff,
-      'highestPrice': instance.highestPrice,
-      'lowestPrice': instance.lowestPrice,
+      'name': instance.name,
     };
 
 StockInfo _$StockInfoFromJson(Map<String, dynamic> json) => StockInfo(

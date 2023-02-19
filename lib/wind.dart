@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:bruno/bruno.dart';
@@ -22,7 +23,8 @@ class FloatWindowView extends StatefulWidget {
 class _FloatWindowViewState extends State<FloatWindowView> {
   late AppConfig config;
   Timer? timer;
-  late List<StockInfo> stockList;
+  List<StockInfo>? stockList;
+  Map<String, StockInfo> oldStockPriceMap = HashMap();
 
   final int stockHeightBase = 400;
 
@@ -30,12 +32,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   void initState() {
     super.initState();
     config = widget.config;
-    stockList = config.stockList.where((i) => i.showInFloat).toList();
+    updateStockList(config.stockList);
 
-    // refresh(widget.config);
-    // Timer(const Duration(seconds: 1), () {
-    //   refresh(widget.config);
-    // });
     SchedulerBinding.instance.addPostFrameCallback((_) {
       w = Window.of(context);
       w?.onData((source, name, data) async {
@@ -43,43 +41,45 @@ class _FloatWindowViewState extends State<FloatWindowView> {
           refresh(AppConfig.fromJson(jsonDecode(data)));
         } else if (name == "stockList") {
           var newData = (json.decode(data) as List).map((data) => StockInfo.fromJson(data)).toList();
-          setState(() {
-            stockList = newData;
-          });
+          updateStockList(newData);
         }
       });
     });
   }
 
   void refresh(AppConfig newConfig) async {
-    var stockMap = {for (var e in config.stockList) e.key: e};
-    for (var stock in newConfig.stockList) {
-      stock.price = stockMap[stock.key]?.price;
-    }
     setState(() {
       config = newConfig;
-      stockList = config.stockList.where((i) => i.showInFloat).toList();
+      updateStockList(config.stockList);
     });
     await w?.show(visible: newConfig.floatConfig.enable);
     // var screenHeight = w?.system?.screenHeight ?? newConfig.floatConfig.screenHeight;
     var screenWidth = w?.system?.screenWidth ?? newConfig.floatConfig.screenWidth;
     await w?.update(WindowConfig(
-      height: (newConfig.floatConfig.windowHeight * stockHeightBase * stockList.length).toInt(),
+      height: (newConfig.floatConfig.windowHeight * stockHeightBase * stockList!.length).toInt(),
       width: (newConfig.floatConfig.windowWidth * screenWidth).toInt(),
     ));
+  }
 
-    // timer?.cancel();
-    // timer = Timer.periodic(Duration(seconds: newConfig.floatConfig.frequency), (timer) {
-    //   refreshStockInfo();
-    // });
-    // refreshStockInfo();
+  void updateStockList(var newStockList) {
+    // 如果新传过来的数据没有价格信息，就用老得价格
+    var stockMap = {for (var e in config.stockList) e.key: e};
+    for (var stock in newStockList) {
+      stock.price ??= stockMap[stock.key]?.price;
+    }
+    if (stockList != null) {
+      for (var stock in stockList!) {
+        oldStockPriceMap[stock.key] = stock;
+      }
+    }
+    setState(() {
+      stockList = newStockList.where((i) => i.showInFloat == true).toList();
+    });
   }
 
   void refreshStockInfo() async {
-    var newStockList = await getStockLatestInfo(stockList);
-    setState(() {
-      stockList = newStockList;
-    });
+    var newStockList = await getStockLatestInfo(stockList!);
+    updateStockList(newStockList);
   }
 
   Window? w;
@@ -94,11 +94,40 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     return [stock.name, stock.code, formatNum(getShowPrice(stock)), '${formatNum(getShowDiff(stock))}%'][index];
   }
 
+  Color getStockColor(StockInfo stock) {
+    if (config.floatConfig.fontColorType == "黑色" || stock.price == null) {
+      return Colors.black;
+    }
+    if (config.floatConfig.fontColorType == "当日涨跌") {
+      var showDiff = getShowDiff(stock) ?? 0;
+      return showDiff == 0
+          ? Colors.black
+          : showDiff > 0
+              ? Colors.red
+              : Colors.green;
+    }
+    if (config.floatConfig.fontColorType == "同比涨跌") {
+      var old = oldStockPriceMap[stock.key];
+      if (old == null) {
+        return Colors.black;
+      }
+      double curPrice = getShowPrice(stock) ?? 0;
+      double oldPrice = getShowPrice(old) ?? 0;
+      return curPrice == oldPrice
+          ? Colors.black
+          : curPrice > oldPrice
+              ? Colors.red
+              : Colors.green;
+    }
+
+    return Colors.black;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
         width: config.floatConfig.windowWidth * config.floatConfig.screenWidth,
-        height: config.floatConfig.windowHeight * stockHeightBase * stockList.length,
+        height: config.floatConfig.windowHeight * stockHeightBase * stockList!.length,
         // color: Colors.white.withOpacity(config.floatConfig.opacity),
         child: Card(
             elevation: 0,
@@ -107,16 +136,16 @@ class _FloatWindowViewState extends State<FloatWindowView> {
               const Padding(
                 padding: EdgeInsets.all(3),
               ),
-              for (var stock in stockList)
+              for (var stock in stockList!)
                 Column(children: [
                   Text(generateStockText(stock),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
+                      style: TextStyle(
+                        color: getStockColor(stock),
+                        fontSize: config.floatConfig.fontSize,
                       ),
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.left),
-                  Offstage(offstage: (stock.key == stockList.last.key), child: const Divider(indent: 15)),
+                  Offstage(offstage: (stock.key == stockList!.last.key), child: const Divider(indent: 15)),
                 ])
             ])));
   }
