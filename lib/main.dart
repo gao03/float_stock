@@ -333,7 +333,6 @@ class _HomePageState extends State<HomePage> {
                       minValue: 0.05,
                       maxValue: 1,
                       value: config.floatConfig.windowWidth,
-                      label: (config.floatConfig.windowWidth * maxWidth).toStringAsFixed(0),
                       onChanged: (data) {
                         setStateAndSave(() {
                           config.floatConfig.windowWidth = data;
@@ -373,7 +372,7 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                   BrnRadioInputFormItem(
-                    key:fontColorTypeKey,
+                    key: fontColorTypeKey,
                     title: "字体颜色",
                     options: const ["黑色", "当日涨跌", "同比涨跌"],
                     value: config.floatConfig.fontColorType,
