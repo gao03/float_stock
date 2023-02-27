@@ -26,6 +26,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   List<StockInfo>? stockList;
   Map<String, StockInfo> oldStockPriceMap = HashMap();
 
+  Window? w;
   final int stockHeightBase = 400;
 
   @override
@@ -82,9 +83,6 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     updateStockList(newStockList);
   }
 
-  Window? w;
-  bool dragging = false;
-
   String generateStockText(StockInfo stock) {
     return config.floatConfig.showColumns.map((e) => getStockField(stock, e)).join(" ");
   }
@@ -128,25 +126,28 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     return SizedBox(
         width: config.floatConfig.windowWidth * config.floatConfig.screenWidth,
         height: config.floatConfig.windowHeight * stockHeightBase * stockList!.length,
-        // color: Colors.white.withOpacity(config.floatConfig.opacity),
-        child: Card(
-            elevation: 0,
-            color: Colors.white.withOpacity(config.floatConfig.opacity),
-            child: Column(children: [
-              const Padding(
-                padding: EdgeInsets.all(3),
-              ),
-              for (var stock in stockList!)
-                Column(children: [
-                  Text(generateStockText(stock),
-                      style: TextStyle(
-                        color: getStockColor(stock),
-                        fontSize: config.floatConfig.fontSize,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.left),
-                  Offstage(offstage: (stock.key == stockList!.last.key), child: const Divider(indent: 15)),
-                ])
-            ])));
+        child: GestureDetector(
+            onDoubleTap: () {
+              w?.launchMainActivity();
+            },
+            child: Card(
+                elevation: 0,
+                color: Colors.white.withOpacity(config.floatConfig.opacity),
+                child: Column(children: [
+                  const Padding(
+                    padding: EdgeInsets.all(3),
+                  ),
+                  for (var stock in stockList!)
+                    Column(children: [
+                      Text(generateStockText(stock),
+                          style: TextStyle(
+                            color: getStockColor(stock),
+                            fontSize: config.floatConfig.fontSize,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.left),
+                      Offstage(offstage: (stock.key == stockList!.last.key), child: const Divider(indent: 15)),
+                    ])
+                ]))));
   }
 }
