@@ -101,8 +101,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       return showDiff == 0
           ? Colors.black
           : showDiff > 0
-              ? Colors.red
-              : Colors.green;
+          ? Colors.red
+          : Colors.green;
     }
     if (config.floatConfig.fontColorType == "同比涨跌") {
       var old = oldStockPriceMap[stock.key];
@@ -114,8 +114,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       return curPrice == oldPrice
           ? Colors.black
           : curPrice > oldPrice
-              ? Colors.red
-              : Colors.green;
+          ? Colors.red
+          : Colors.green;
     }
 
     return Colors.black;
@@ -129,6 +129,9 @@ class _FloatWindowViewState extends State<FloatWindowView> {
         child: GestureDetector(
             onDoubleTap: () {
               w?.launchMainActivity();
+            },
+            onLongPress: () {
+              w?.close();
             },
             child: Card(
                 elevation: 0,

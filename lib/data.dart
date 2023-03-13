@@ -18,9 +18,6 @@ Future<List<StockInfo>> getStockLatestInfo(List<StockInfo> list) async {
   });
   for (var s in list) {
     s.price = MemoryCache.instance.read<StockRtInfo>(s.key);
-    // if (s.price?.currentPrice != null) {
-    //   s.price!.currentPrice = s.price!.currentPrice! + (Random().nextDouble() - 0.5);
-    // }
   }
   return list;
 }

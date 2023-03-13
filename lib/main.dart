@@ -24,8 +24,8 @@ void main() async {
   config = await readConfig();
   BrnInitializer.register(
       allThemeConfig: BrnAllThemeConfig(
-        commonConfig: BrnCommonConfig(brandPrimary: Colors.red, brandAuxiliary: Colors.redAccent),
-      ));
+    commonConfig: BrnCommonConfig(brandPrimary: Colors.red, brandAuxiliary: Colors.redAccent),
+  ));
   runApp(const App());
 }
 
@@ -38,9 +38,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: '盯盘',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
+      theme: ThemeData(primarySwatch: Colors.red, scaffoldBackgroundColor: Colors.white),
       initialRoute: "/",
       routes: {
         "/": (_) => const HomePage(title: "盯"),
@@ -80,11 +78,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     floatWindowSelectColumnFlagList =
-        floatWindowColumn
-            .asMap()
-            .keys
-            .map((e) => config.floatConfig.showColumns.contains(e))
-            .toList();
+        floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
     initStateAsync();
   }
 
@@ -117,18 +111,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   double get maxHeight {
-    _maxHeight ??= MediaQuery
-        .of(context)
-        .size
-        .height;
+    _maxHeight ??= MediaQuery.of(context).size.height;
     return _maxHeight!;
   }
 
   double get maxWidth {
-    _maxWidth ??= MediaQuery
-        .of(context)
-        .size
-        .width;
+    _maxWidth ??= MediaQuery.of(context).size.width;
     return _maxWidth!;
   }
 
@@ -182,20 +170,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
-    config.floatConfig.screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
-    config.floatConfig.screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
-    config.stockList.sort((a, b) =>
-    a.showInFloat == b.showInFloat
+    config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
+    config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
+    config.stockList.sort((a, b) => a.showInFloat == b.showInFloat
         ? 0
         : a.showInFloat
-        ? -1
-        : 1);
+            ? -1
+            : 1);
 
     await checkFloatPermission();
 
@@ -255,8 +236,7 @@ class _HomePageState extends State<HomePage> {
       var conditions = stockList.map((e) => e.name).toList().cast<String>();
       await showDialog(
           context: context,
-          builder: (_) =>
-              StatefulBuilder(
+          builder: (_) => StatefulBuilder(
                 builder: (context, state) {
                   return BrnSingleSelectDialog(
                       isClose: true,
@@ -326,126 +306,129 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.topCenter,
               child: SingleChildScrollView(
                   child: Column(children: [
-                    NormalFormGroup(title: "悬浮窗配置", children: [
-                      BrnSwitchFormItem(
-                        title: "是否启用",
-                        isRequire: false,
-                        value: config.floatConfig.enable,
-                        onChanged: (oldValue, newValue) {
-                          setStateAndSave(() {
-                            config.floatConfig.enable = newValue;
-                          });
-                        },
-                      ),
-                      SliderWidget(
-                          title: "透明度   ",
-                          value: config.floatConfig.opacity,
-                          onChanged: (data) {
-                            setStateAndSave(() {
-                              config.floatConfig.opacity = data;
-                            });
-                          }),
-                      SliderWidget(
-                          title: "窗口宽度",
-                          minValue: 0.05,
-                          maxValue: 1,
-                          value: config.floatConfig.windowWidth,
-                          onChanged: (data) {
-                            setStateAndSave(() {
-                              config.floatConfig.windowWidth = data;
-                            });
-                          }),
-                      SliderWidget(
-                          title: "窗口高度",
-                          minValue: 0.05,
-                          maxValue: 1,
-                          value: config.floatConfig.windowHeight,
-                          onChanged: (data) {
-                            setStateAndSave(() {
-                              config.floatConfig.windowHeight = data;
-                            });
-                          }),
-                      SliderWidget(
-                          title: "字体大小",
-                          minValue: 10,
-                          maxValue: 60,
-                          value: config.floatConfig.fontSize,
-                          label: config.floatConfig.fontSize.toStringAsFixed(1),
-                          onChanged: (data) {
-                            setStateAndSave(() {
-                              config.floatConfig.fontSize = data;
-                            });
-                          }),
-                      SliderWidget(
-                        value: config.floatConfig.frequency.toDouble(),
-                        title: "刷新频率",
-                        minValue: 1,
-                        maxValue: 100,
-                        label: "${config.floatConfig.frequency.toInt()}秒",
-                        onChanged: (data) {
-                          setStateAndSave(() {
-                            config.floatConfig.frequency = data.toInt();
-                          });
-                        },
-                      ),
-                      BrnRadioInputFormItem(
-                        title: "字体颜色",
-                        options: const ["黑色", "当日涨跌", "同比涨跌"],
-                        value: config.floatConfig.fontColorType,
-                        onChanged: (oldValue, newValue) {
-                          if (newValue != null) {
-                            setStateAndSave(() {
-                              config.floatConfig.fontColorType = newValue;
-                            });
-                          }
-                        },
-                      ),
-                      BrnTextQuickSelectFormItem(
-                        title: "展示字段",
-                        btnsTxt: floatWindowColumn,
-                        value: floatSelectColumnStr,
-                        selectBtnList: floatWindowSelectColumnFlagList,
-                        onBtnSelectChanged: (int index) {
-                          setStateAndSave(() {
-                            if (config.floatConfig.showColumns.contains(index)) {
-                              config.floatConfig.showColumns.remove(index);
-                            } else {
-                              config.floatConfig.showColumns.add(index);
-                            }
-                            floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
-                          });
-                        },
-                      ),
+                NormalFormGroup(title: "悬浮窗配置", children: [
+                  BrnSwitchFormItem(
+                    title: "是否启用",
+                    isRequire: false,
+                    value: config.floatConfig.enable,
+                    onChanged: (oldValue, newValue) {
+                      setStateAndSave(() {
+                        config.floatConfig.enable = newValue;
+                      });
+                    },
+                  ),
+                  SliderWidget(
+                      title: "透明度   ",
+                      value: config.floatConfig.opacity,
+                      onChanged: (data) {
+                        setStateAndSave(() {
+                          config.floatConfig.opacity = data;
+                        });
+                      }),
+                  SliderWidget(
+                      title: "窗口宽度",
+                      minValue: 0.05,
+                      maxValue: 1,
+                      value: config.floatConfig.windowWidth,
+                      onChanged: (data) {
+                        setStateAndSave(() {
+                          config.floatConfig.windowWidth = data;
+                        });
+                      }),
+                  SliderWidget(
+                      title: "窗口高度",
+                      minValue: 0.05,
+                      maxValue: 1,
+                      value: config.floatConfig.windowHeight,
+                      onChanged: (data) {
+                        setStateAndSave(() {
+                          config.floatConfig.windowHeight = data;
+                        });
+                      }),
+                  SliderWidget(
+                      title: "字体大小",
+                      minValue: 10,
+                      maxValue: 60,
+                      value: config.floatConfig.fontSize,
+                      label: config.floatConfig.fontSize.toStringAsFixed(1),
+                      onChanged: (data) {
+                        setStateAndSave(() {
+                          config.floatConfig.fontSize = data;
+                        });
+                      }),
+                  SliderWidget(
+                    value: config.floatConfig.frequency.toDouble(),
+                    title: "刷新频率",
+                    minValue: 1,
+                    maxValue: 100,
+                    label: "${config.floatConfig.frequency.toInt()}秒",
+                    onChanged: (data) {
+                      setStateAndSave(() {
+                        config.floatConfig.frequency = data.toInt();
+                      });
+                    },
+                  ),
+                  BrnRadioInputFormItem(
+                    title: "字体颜色",
+                    options: const ["黑色", "当日涨跌", "同比涨跌"],
+                    value: config.floatConfig.fontColorType,
+                    onChanged: (oldValue, newValue) {
+                      if (newValue != null) {
+                        setStateAndSave(() {
+                          config.floatConfig.fontColorType = newValue;
+                        });
+                      }
+                    },
+                  ),
+                  BrnTextQuickSelectFormItem(
+                    title: "展示字段",
+                    btnsTxt: floatWindowColumn,
+                    value: floatSelectColumnStr,
+                    selectBtnList: floatWindowSelectColumnFlagList,
+                    onBtnSelectChanged: (int index) {
+                      setStateAndSave(() {
+                        if (config.floatConfig.showColumns.contains(index)) {
+                          config.floatConfig.showColumns.remove(index);
+                        } else {
+                          config.floatConfig.showColumns.add(index);
+                        }
+                        floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
+                      });
+                    },
+                  ),
+                ]),
+                Container(
+                  color: const Color(0xfafafaff),
+                  height: 10,
+                ),
+                NormalFormGroup(
+                    title: "股票",
+                    onReorder: (int oldIndex, int newIndex) {
+                      setStateAndSave(() {
+                        if (oldIndex < newIndex) {
+                          newIndex -= 1;
+                        }
+                        var temp = config.stockList.removeAt(oldIndex);
+                        config.stockList.insert(newIndex, temp);
+                      });
+                    },
+                    children: [
+                      for (var stock in config.stockList)
+                        Dismissible(
+                            key: Key(stock.key),
+                            background: Container(color: Colors.red),
+                            direction: DismissDirection.endToStart,
+                            confirmDismiss: (direction) => deleteStock(stock),
+                            child: StockInfoWidget(
+                                stock: stock,
+                                onVisibleChange: (value) {
+                                  setStateAndSave(() {
+                                    stock.showInFloat = value;
+                                  });
+                                  BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
+                                })),
                     ]),
-                    const Divider(indent: 5, color: Colors.white),
-                    NormalFormGroup(
-                        title: "股票",
-                        onReorder: (int oldIndex, int newIndex) {
-                          setStateAndSave(() {
-                            if (oldIndex < newIndex) {
-                              newIndex -= 1;
-                            }
-                            var temp = config.stockList.removeAt(oldIndex);
-                            config.stockList.insert(newIndex, temp);
-                          });
-                        },
-                        children: [
-                          for (var stock in config.stockList)
-                            Dismissible(
-                                key: Key(stock.key),
-                                background: Container(color: Colors.red),
-                                direction: DismissDirection.endToStart,
-                                confirmDismiss: (direction) => deleteStock(stock),
-                                child: StockInfoWidget(
-                                    stock: stock,
-                                    onVisibleChange: (value) {
-                                      setStateAndSave(() {
-                                        stock.showInFloat = value;
-                                      });
-                                      BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
-                                    })),
-                        ]),
-                  ])))),
+              ])))),
       bottomSheet: BrnBottomButtonPanel(
         mainButtonName: '确定',
         mainButtonOnTap: updateConfigAndRefresh,
