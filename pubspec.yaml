@@ -35,7 +35,7 @@ dependencies:
   dio: ^4.0.6
   gbk_codec: 0.4.0
   bruno: 3.3.0
-  json_annotation: ^4.8.0
+  json_annotation: ^4.8.1
   shared_preferences: ^2.0.17
   memory_cache: ^1.2.0
   # The following adds the Cupertino Icons font to your application.
