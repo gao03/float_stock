@@ -27,3 +27,11 @@ jobs:
     - run: flutter --version
     - run: flutter pub get
     - run: flutter build apk --debug
+    
+    - name: Generate Tag
+      run: echo "release_tag=auto-release-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+    - name: Release
+      uses: softprops/action-gh-release@v0.1.15
+      with:
+        tag_name: ${{ env.release_tag }}
+        files: build/app/outputs/flutter-apk/app-debug.apk
