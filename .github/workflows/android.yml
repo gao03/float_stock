@@ -27,7 +27,20 @@ jobs:
 
     - run: flutter --version
     - run: flutter pub get
-    - run: flutter build apk --debug
+    
+    - name: Configure Keystore
+      run: |
+        echo "$KEYSTORE_JKS" | base64 --decode > app/upload-keystore.jks
+        echo "storeFile=upload-keystore.jks" >> key.properties
+        echo "keyAlias=key" >> key.properties
+        echo "storePassword=$KEYSTORE_PASSWORD" >> key.properties
+        echo "keyPassword=$KEYSTORE_PASSWORD" >> key.properties
+      env:
+        KEYSTORE_JKS: ${{ secrets.KEYSTORE_JKS }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      working-directory: android
+    
+    - run: flutter build apk --release
     
     - name: Generate Tag
       run: echo "release_tag=auto-release-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
@@ -35,4 +48,4 @@ jobs:
       uses: softprops/action-gh-release@v0.1.15
       with:
         tag_name: ${{ env.release_tag }}
-        files: build/app/outputs/flutter-apk/app-debug.apk
+        files: build/app/outputs/flutter-apk/app-release.apk
