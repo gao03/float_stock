@@ -197,20 +197,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> checkAndShowWindow() async {
     if (config.floatConfig.enable) {
       await checkFloatPermission();
-      // var showStockCount = config.stockList.where((i) => i.showInFloat).length;
-      // var showColumnCount = config.floatConfig.showColumns.length;
-      // if (showStockCount == 0) {
-      //   if (context.mounted) {
-      //     BrnToast.show("可显示股票为空，不开启悬浮窗", context);
-      //   }
-      //   return;
-      // }
-      // if (showColumnCount == 0) {
-      //   if (context.mounted) {
-      //     BrnToast.show("可显示字段为空，不开启悬浮窗", context);
-      //   }
-      //   return;
-      // }
+      window.show(visible: true);
     }
 
     await shareDataToFloat(config.toJson(), "config");

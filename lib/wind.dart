@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:bruno/bruno.dart';
 import 'package:float_stock/entity.dart';
@@ -74,7 +75,10 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       }
     }
     setState(() {
-      stockList = newStockList.where((i) => i.showInFloat == true).toList();
+      stockList = newStockList
+          .where((i) => i.showInFloat == true)
+          .where(checkStockCanShow)
+          .toList();
     });
   }
 
@@ -101,8 +105,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       return showDiff == 0
           ? Colors.black
           : showDiff > 0
-          ? Colors.red
-          : Colors.green;
+              ? Colors.red
+              : Colors.green;
     }
     if (config.floatConfig.fontColorType == "同比涨跌") {
       var old = oldStockPriceMap[stock.key];
@@ -114,11 +118,18 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       return curPrice == oldPrice
           ? Colors.black
           : curPrice > oldPrice
-          ? Colors.red
-          : Colors.green;
+              ? Colors.red
+              : Colors.green;
     }
 
     return Colors.black;
+  }
+
+  bool checkStockCanShow(StockInfo stock) {
+    if (!stock.showInFloat) {
+      return false;
+    }
+    return checkMarketStatus(stock.type) != MarketStatus.close;
   }
 
   @override
@@ -131,7 +142,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
               w?.launchMainActivity();
             },
             onLongPress: () {
-              w?.close();
+              w?.hide();
             },
             child: Card(
                 elevation: 0,
