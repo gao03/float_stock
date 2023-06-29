@@ -35,8 +35,8 @@ jobs:
         echo "keyAlias=key" >> key.properties
         echo "storePassword=$KEYSTORE_PASSWORD" >> key.properties
         echo "keyPassword=$KEYSTORE_PASSWORD" >> key.properties
-        sed -i "s/^flutter.versionCode=1/flutter.versionCode=`date +%s`/" local.properties
-        sed -i "s/flutter.versionName=.*/&-`date "+%Y%m%d%H%M%S"`/" local.properties
+        echo "flutter.versionCode=`date +%s`" >> local.properties
+        echo "flutter.versionName=`date "+%Y-%m-%d %H:%M:%S"`" >> local.properties
       env:
         KEYSTORE_JKS: ${{ secrets.KEYSTORE_JKS }}
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
