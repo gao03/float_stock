@@ -44,7 +44,8 @@ jobs:
     
     - name: Upgrade Version
       run: |
-        sed -r -i "s/^version: *([0-9]+\.[0-9]+).*?\+([0-9]+)$/version: \1.$RUN_ATTEMPT+$RUN_ATTEMPT/" pubspec.yaml
+        sed -r -i "0,/^version: *([0-9]+\.[0-9]+).*?\+([0-9]+)$/s//version: \1.$RUN_ATTEMPT+$RUN_ATTEMPT/" pubspec.yaml
+        grep -E '^version: .*'  pubspec.yaml
       env:
         RUN_ATTEMPT: ${{ github.run_attempt }}
     
