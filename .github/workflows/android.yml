@@ -14,54 +14,57 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    
-    - uses: actions/setup-java@v2
-      with:
-        distribution: 'zulu'
-        java-version: '11'
-
-    - uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.7.3'
-        channel: 'stable'
-
-    - run: flutter --version
-    - run: flutter pub get
-    
-    - name: Configure Keystore
-      run: |
-        echo "$KEYSTORE_JKS" | base64 --decode > app/upload-keystore.jks
-        echo "storeFile=upload-keystore.jks" >> key.properties
-        echo "keyAlias=key" >> key.properties
-        echo "storePassword=$KEYSTORE_PASSWORD" >> key.properties
-        echo "keyPassword=$KEYSTORE_PASSWORD" >> key.properties
-        echo "flutter.versionCode=`date +%s`" >> local.properties
-        echo "flutter.versionName=`date "+%Y-%m-%d %H:%M:%S"`" >> local.properties
-      env:
-        KEYSTORE_JKS: ${{ secrets.KEYSTORE_JKS }}
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-      working-directory: android
-    
+#
+#    - uses: actions/setup-java@v2
+#      with:
+#        distribution: 'zulu'
+#        java-version: '11'
+#
+#    - uses: subosito/flutter-action@v2
+#      with:
+#        flutter-version: '3.7.3'
+#        channel: 'stable'
+#
+#    - run: flutter --version
+#    - run: flutter pub get
+#
+#    - name: Configure Keystore
+#      run: |
+#        echo "$KEYSTORE_JKS" | base64 --decode > app/upload-keystore.jks
+#        echo "storeFile=upload-keystore.jks" >> key.properties
+#        echo "keyAlias=key" >> key.properties
+#        echo "storePassword=$KEYSTORE_PASSWORD" >> key.properties
+#        echo "keyPassword=$KEYSTORE_PASSWORD" >> key.properties
+#        echo "flutter.versionCode=`date +%s`" >> local.properties
+#        echo "flutter.versionName=`date "+%Y-%m-%d %H:%M:%S"`" >> local.properties
+#      env:
+#        KEYSTORE_JKS: ${{ secrets.KEYSTORE_JKS }}
+#        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+#      working-directory: android
+#
     - name: Upgrade Version
       run: |
+        echo run_id：${{ github.run_id }}
+        echo run_number：${{ github.run_number }}
+        echo run_attempt：${{ github.run_attempt }}
         sed -r -i "0,/^version: *([0-9]+\.[0-9]+).*?\+([0-9]+)$/s//version: \1.$RUN_ATTEMPT+$RUN_ATTEMPT/" pubspec.yaml
         grep -E '^version: .*'  pubspec.yaml
       env:
         RUN_ATTEMPT: ${{ github.run_attempt }}
     
-    - run: flutter build apk --release
-    
-    - name: Generate Tag
-      run: echo "release_tag=auto-release-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
-    - name: Release
-      uses: softprops/action-gh-release@v0.1.15
-      with:
-        tag_name: ${{ env.release_tag }}
-        files: build/app/outputs/flutter-apk/app-release.apk
-        
-    - name: Delete Older Releases
-      uses: dev-drprasad/delete-older-releases@v0.2.1
-      with:
-        keep_latest: 2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#    - run: flutter build apk --release
+#
+#    - name: Generate Tag
+#      run: echo "release_tag=auto-release-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+#    - name: Release
+#      uses: softprops/action-gh-release@v0.1.15
+#      with:
+#        tag_name: ${{ env.release_tag }}
+#        files: build/app/outputs/flutter-apk/app-release.apk
+#
+#    - name: Delete Older Releases
+#      uses: dev-drprasad/delete-older-releases@v0.2.1
+#      with:
+#        keep_latest: 2
+#      env:
+#        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
