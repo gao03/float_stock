@@ -42,6 +42,10 @@ jobs:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
       working-directory: android
     
+    - name: Upgrade Version
+      run: |
+        sed -i '' "s/^version=1.0.0+1/version=1.0.`date "+%Y%m%d%H%M%S"`+`date +%s`/" pubspec.yaml
+    
     - run: flutter build apk --release
     
     - name: Generate Tag
