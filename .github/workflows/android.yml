@@ -44,7 +44,9 @@ jobs:
     
     - name: Upgrade Version
       run: |
-        sed -i "s/^version=1.0.0+1/version=1.0.`date "+%Y%m%d%H%M%S"`+`date +%s`/" pubspec.yaml
+        sed -r -i "s/^version: *(.+?)\+([0-9]+)$/version: \1.$RUN_ATTEMPT+$RUN_ATTEMPT/" pubspec.yaml
+      env:
+        RUN_ATTEMPT: ${{ github.run_attempt }}
     
     - run: flutter build apk --release
     
