@@ -32,7 +32,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_floatwing: 0.2.1
-  dio: ^5.2.1
+  dio: ^5.3.0
   gbk_codec: 0.4.0
   bruno: 3.3.0
   json_annotation: ^4.8.0
