@@ -53,10 +53,10 @@ packages:
     dependency: "direct main"
     description:
       name: bruno
-      sha256: "18866ef04d470876dc2434eb44c2ec3c2213ef354f734f8f99cfabee93fd4027"
+      sha256: f3e1bbf4439650da02efb17a6a5df6d4862e4cbae50be4f0d953912ef6247be0
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.0"
+    version: "3.4.0"
   build:
     dependency: transitive
     description:
@@ -340,10 +340,10 @@ packages:
     dependency: transitive
     description:
       name: intl
-      sha256: "910f85bce16fb5c6f614e117efa303e85a1731bb0081edf3604a2ae6e9a3cc91"
+      sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.17.0"
+    version: "0.18.1"
   io:
     dependency: transitive
     description:
