@@ -101,15 +101,7 @@ class StockInfoWidget extends StatelessWidget {
                               style: BrnDefaultConfigUtils.defaultFormItemConfig.titleTextStyle.generateTextStyle(),
                               overflow: TextOverflow.ellipsis,
                             )),
-                        Container(
-                            padding: BrnDefaultConfigUtils.defaultFormItemConfig.titlePaddingLg,
-                            child: Text(
-                              formatNum(getShowPrice(stock)),
-                              style: BrnDefaultConfigUtils.defaultFormItemConfig.titleTextStyle
-                                  .copyWith(color: color)
-                                  .generateTextStyle(),
-                              overflow: TextOverflow.ellipsis,
-                            )),
+
                       ]),
                       TableRow(children: [
                         Container(
@@ -117,15 +109,6 @@ class StockInfoWidget extends StatelessWidget {
                             child: Text(
                               stock.code,
                               style: BrnDefaultConfigUtils.defaultFormItemConfig.subTitleTextStyle.generateTextStyle(),
-                              overflow: TextOverflow.ellipsis,
-                            )),
-                        Container(
-                            padding: BrnDefaultConfigUtils.defaultFormItemConfig.titlePaddingLg,
-                            child: Text(
-                              '${formatNum(getShowDiff(stock))}%',
-                              style: BrnDefaultConfigUtils.defaultFormItemConfig.subTitleTextStyle
-                                  .copyWith(color: color)
-                                  .generateTextStyle(),
                               overflow: TextOverflow.ellipsis,
                             )),
                       ]),

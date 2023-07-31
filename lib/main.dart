@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
-import 'dart:ui';
 
 import 'package:bruno/bruno.dart';
 import 'package:float_stock/api.dart';
@@ -16,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
+import 'package:longport/longport.dart';
 
 late AppConfig config;
 
@@ -70,6 +69,8 @@ class _HomePageState extends State<HomePage> {
   final floatWindowColumn = ["名称", "代码", "价格", "涨跌幅"];
   late List<bool> floatWindowSelectColumnFlagList;
 
+  final Longport longport = Longport();
+
   double? _maxHeight;
   double? _maxWidth;
   Timer? timer;
@@ -79,26 +80,11 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     floatWindowSelectColumnFlagList =
         floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
-    initStateAsync();
-  }
-
-  void initStateAsync() async {
-    await _createWindows();
-
-    Timer(const Duration(seconds: 5), () {
-      timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
-        refreshStockData();
-      });
-    });
-  }
-
-  void refreshStockData() async {
-    var newStockData = await getStockLatestInfo(config.stockList);
-    setState(() {
-      config.stockList = newStockData;
-    });
-    var stockListStr = newStockData.where((i) => i.showInFloat).map((e) => e.toJson()).toList();
-    await shareDataToFloat(stockListStr, "stockList");
+    _createWindows();
+    if (config.longPortConfig != null) {
+      var lc = config.longPortConfig!;
+      longport.init(lc.appKey, lc.appSecret, lc.accessToken, null);
+    }
   }
 
   _createWindows() async {
@@ -184,12 +170,6 @@ class _HomePageState extends State<HomePage> {
     if (context.mounted && notify && !result) {
       BrnToast.show("操作失败", context);
     }
-
-    timer?.cancel();
-    timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
-      refreshStockData();
-    });
-
     await checkAndShowWindow();
     setState(() {});
   }

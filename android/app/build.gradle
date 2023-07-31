@@ -37,8 +37,8 @@ android {
     ndkVersion flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_9
+        targetCompatibility JavaVersion.VERSION_1_9
     }
 
     defaultConfig {
@@ -66,8 +66,14 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    namespace 'com.gaozhiqiang03.float_stock'
 }
 
 flutter {
     source '../..'
+}
+
+dependencies {
+    implementation "io.github.longbridgeapp:openapi-sdk:0.2.64"
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
 }

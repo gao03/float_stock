@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:ffi';
 
 import 'package:bruno/bruno.dart';
 import 'package:float_stock/entity.dart';
@@ -9,8 +8,8 @@ import 'package:float_stock/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
-
-import 'data.dart';
+import 'package:longport/entity.dart';
+import 'package:longport/longport.dart';
 
 class FloatWindowView extends StatefulWidget {
   final AppConfig config;
@@ -29,11 +28,13 @@ class _FloatWindowViewState extends State<FloatWindowView> {
 
   Window? w;
   final int stockHeightBase = 400;
+  final Longport ls = Longport();
 
   @override
   void initState() {
     super.initState();
     config = widget.config;
+    initLs();
     updateStockList(config.stockList);
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -41,11 +42,26 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       w?.onData((source, name, data) async {
         if (name == "config") {
           refresh(AppConfig.fromJson(jsonDecode(data)));
-        } else if (name == "stockList") {
-          var newData = (json.decode(data) as List).map((data) => StockInfo.fromJson(data)).toList();
-          updateStockList(newData);
         }
       });
+    });
+  }
+
+  void initLs() async {
+    await ls.init(
+        "", "", "",
+        onQuote);
+  }
+
+  Future<void> onQuote(String symbol, PushQuote quote) async {
+    for (var stock in stockList!) {
+      if (symbol.startsWith(stock.code.toUpperCase())) {
+        stock.lastPrice = quote.lastDone!;
+        break;
+      }
+    }
+    setState(() {
+      stockList = stockList;
     });
   }
 
@@ -74,17 +90,11 @@ class _FloatWindowViewState extends State<FloatWindowView> {
         oldStockPriceMap[stock.key] = stock;
       }
     }
+    var filterStockList = newStockList.where((i) => i.showInFloat == true).where(checkStockCanShow).toList();
+    ls.subscribes(filterStockList.map((e) => ("${e.code}.US").toUpperCase()).toList().cast<String>());
     setState(() {
-      stockList = newStockList
-          .where((i) => i.showInFloat == true)
-          .where(checkStockCanShow)
-          .toList();
+      stockList = filterStockList;
     });
-  }
-
-  void refreshStockInfo() async {
-    var newStockList = await getStockLatestInfo(stockList!);
-    updateStockList(newStockList);
   }
 
   String generateStockText(StockInfo stock) {
@@ -93,7 +103,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
 
   String getStockField(StockInfo stock, int index) {
     //["名称", "代码", "价格", "涨跌幅"];
-    return [stock.name, stock.code, formatNum(getShowPrice(stock)), '${formatNum(getShowDiff(stock))}%'][index];
+    return [stock.name, stock.code, formatNum(stock.lastPrice), '${formatNum(getShowDiff(stock))}%'][index];
   }
 
   Color getStockColor(StockInfo stock) {

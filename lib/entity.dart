@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:float_stock/utils.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'entity.g.dart';
@@ -85,11 +84,12 @@ class StockInfo extends ToJsonString {
   String name;
   bool showInFloat;
   StockRtInfo? price;
+  double? lastPrice;
 
   StockInfo({required this.code, required this.type, required this.name, this.price, this.showInFloat = true});
 
   String get key {
-    return '$type$code';
+    return '$code.$type';
   }
 
   factory StockInfo.fromJson(Map<String, dynamic> json) => _$StockInfoFromJson(json);
@@ -99,11 +99,26 @@ class StockInfo extends ToJsonString {
 }
 
 @JsonSerializable()
+class LongPortConfig extends ToJsonString {
+  String appKey;
+  String appSecret;
+  String accessToken;
+
+  LongPortConfig({required this.appKey, required this.appSecret, required this.accessToken});
+
+  factory LongPortConfig.fromJson(Map<String, dynamic> json) => _$LongPortConfigFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$LongPortConfigToJson(this);
+}
+
+@JsonSerializable()
 class AppConfig extends ToJsonString {
   FloatConfig floatConfig;
   List<StockInfo> stockList;
+  LongPortConfig? longPortConfig;
 
-  AppConfig(this.floatConfig, this.stockList);
+  AppConfig({required this.floatConfig, required this.stockList, this.longPortConfig});
 
   factory AppConfig.fromJson(Map<String, dynamic> json) => _$AppConfigFromJson(json);
 

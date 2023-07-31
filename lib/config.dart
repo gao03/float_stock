@@ -16,7 +16,7 @@ Future<AppConfig> readConfig() async {
     print(e);
   }
   return AppConfig(
-      FloatConfig(
+      floatConfig: FloatConfig(
           enable: false,
           opacity: 0.5,
           showColumns: [],
@@ -26,8 +26,8 @@ Future<AppConfig> readConfig() async {
           screenHeight: 1000,
           screenWidth: 800,
           fontSize: 20,
-      fontColorType: "黑色"),
-      []);
+          fontColorType: "黑色"),
+      stockList: []);
 }
 
 Future<bool> updateConfig(AppConfig appConfig) async {
