@@ -53,10 +53,10 @@ packages:
     dependency: "direct main"
     description:
       name: bruno
-      sha256: f3e1bbf4439650da02efb17a6a5df6d4862e4cbae50be4f0d953912ef6247be0
+      sha256: "8bd461a658996000eab1111a93fb4826ade878103f5a9afa29a414046805448b"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0"
+    version: "3.4.1"
   build:
     dependency: transitive
     description:
