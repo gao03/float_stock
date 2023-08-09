@@ -1,6 +1,5 @@
 package com.gaozhiqiang03.float_stock.longport;
 
-import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,6 +12,8 @@ import com.google.gson.reflect.TypeToken;
 import com.longbridge.ConfigBuilder;
 import com.longbridge.quote.PushQuote;
 import com.longbridge.quote.QuoteHandler;
+import com.longbridge.trade.OrderChangedHandler;
+import com.longbridge.trade.PushOrderChanged;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -24,24 +25,23 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
 
 /**
  * LongportPlugin
  */
 @RequiresApi(api = Build.VERSION_CODES.N)
-public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHandler {
-    private final LongPortService ls = new LongPortService(this::onQuote);
+public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHandler, OrderChangedHandler {
+    private final LongPortService ls = new LongPortService(this, this);
     private static final String CHANNEL = "com.gaozhiqiang03.float_stock/longport";
     private MethodChannel methodChannel;
     private final Map<String, MethodConfig> handlers = new HashMap<>();
 
     {
         handlers.put("init", new MethodConfig<>(ls::init, ConfigBuilder.class));
-        handlers.put("getQuote", new MethodConfig<>(ls::getQuote, String.class));
+        handlers.put("getStaticInfo", new MethodConfig<>(ls::getStaticInfo, new TypeToken<List<String>>() {
+        }.getType()));
         handlers.put("getQuotes", new MethodConfig<>(ls::getQuotes, new TypeToken<List<String>>() {
         }.getType()));
-        handlers.put("subscribe", new MethodConfig<>(ls::subscribe, String.class));
         handlers.put("subscribes", new MethodConfig<>(ls::subscribes, new TypeToken<List<String>>() {
         }.getType()));
         handlers.put("getWatchList", new MethodConfig<>(ls::getWatchList));
@@ -50,10 +50,8 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        System.out.println("onAttachedToEngine begin");
         methodChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "com.gaozhiqiang03.float_stock/longport");
         methodChannel.setMethodCallHandler(this);
-        System.out.println("onAttachedToEngine end");
     }
 
     @Override
@@ -66,9 +64,15 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
         Map<String, Object> args = new HashMap<>();
         args.put("symbol", symbol);
         args.put("event", event);
-        System.out.println("onQuote: " + new Gson().toJson(args));
         new Handler(Looper.getMainLooper()).post(() -> {
             methodChannel.invokeMethod("onQuote", new Gson().toJson(args));
+        });
+    }
+
+    @Override
+    public void onOrderChanged(PushOrderChanged event) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            methodChannel.invokeMethod("onTrade", new Gson().toJson(event));
         });
     }
 
@@ -78,8 +82,6 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
     @SuppressWarnings("unchecked")
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
         MethodConfig method = handlers.get(call.method);
-        System.out.println("1 method = " + call.method);
-        System.out.println("2 arguments = " + call.arguments);
         if (method == null) {
             return;
         }
@@ -92,7 +94,6 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
             } else if (method.argumentType != null) {
                 arg = new Gson().fromJson(argStr, method.argumentType);
             }
-            System.out.println("arg = " + arg);
 
             Object response = null;
             if (method.supplier != null) {
@@ -102,13 +103,9 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
             } else if (method.function != null) {
                 response = method.function.apply(arg);
             }
-            System.out.println("response:" + new Gson().toJson(response));
             result.success(new Gson().toJson(response));
-            if ("init".equals(call.method)) {
-                ls.onQuote(this::onQuote);
-            }
         } catch (Exception e) {
-            System.out.println(ExceptionUtils.getStackTrace(e));
+            System.out.println("call.method: " + ExceptionUtils.getStackTrace(e));
             result.error("-1", e.getMessage(), ExceptionUtils.getStackTrace(e));
         }
     }

@@ -3,9 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bruno/bruno.dart';
-import 'package:float_stock/api.dart';
 import 'package:float_stock/config.dart';
-import 'package:float_stock/data.dart';
+import 'package:float_stock/sina.dart';
 import 'package:float_stock/utils.dart';
 import 'package:float_stock/widget.dart';
 import 'package:float_stock/wind.dart';
@@ -14,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/rendering.dart';
-import 'package:longport/longport.dart';
 
 late AppConfig config;
 
@@ -69,11 +67,8 @@ class _HomePageState extends State<HomePage> {
   final floatWindowColumn = ["名称", "代码", "价格", "涨跌幅"];
   late List<bool> floatWindowSelectColumnFlagList;
 
-  final Longport longport = Longport();
-
   double? _maxHeight;
   double? _maxWidth;
-  Timer? timer;
 
   @override
   void initState() {
@@ -81,10 +76,6 @@ class _HomePageState extends State<HomePage> {
     floatWindowSelectColumnFlagList =
         floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
     _createWindows();
-    if (config.longPortConfig != null) {
-      var lc = config.longPortConfig!;
-      longport.init(lc.appKey, lc.appSecret, lc.accessToken, null);
-    }
   }
 
   _createWindows() async {
@@ -134,7 +125,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void addNewStock(StockInfo stock) async {
-    var oldStock = config.stockList.firstWhereOrNull((e) => e.key == stock.key);
+    var oldStock = config.stockList.firstWhereOrNull((e) => e.symbol == stock.symbol);
     if (oldStock != null) {
       BrnToast.show("${stock.name}已经在列表中了", context);
       // 添加的时候，默认展示在悬浮窗
@@ -150,7 +141,7 @@ class _HomePageState extends State<HomePage> {
     if (!isConfirm) {
       return false;
     }
-    config.stockList.removeWhere((element) => element.key == stock.key);
+    config.stockList.removeWhere((element) => element.symbol == stock.symbol);
     await updateConfigAndRefresh();
     return true;
   }
@@ -166,12 +157,59 @@ class _HomePageState extends State<HomePage> {
 
     await checkFloatPermission();
 
+    await checkLongPortConfig();
     var result = await updateConfig(config);
     if (context.mounted && notify && !result) {
       BrnToast.show("操作失败", context);
     }
     await checkAndShowWindow();
+
     setState(() {});
+  }
+
+  Future<void> checkLongPortConfig() async {
+    print(config.toJson());
+    if (config.longPortConfig != null && config.longPortConfig!.appKey.isNotEmpty) {
+      return;
+    }
+    var inputCfg = LongPortConfig("", "", "");
+    BrnDialogManager.showSingleButtonDialog(context,
+        label: "确定",
+        title: "请填写 LongPort 配置",
+        messageWidget: NormalFormGroup(
+          title: "",
+          children: [
+            BrnTextInputFormItem(
+              title: "App Key",
+              onChanged: (newValue) {
+                inputCfg.appKey = newValue;
+              },
+            ),
+            BrnTextInputFormItem(
+              title: "App Secret",
+              onChanged: (newValue) {
+                inputCfg.appSecret = newValue;
+              },
+            ),
+            BrnTextInputFormItem(
+              title: "Access Token",
+              onChanged: (newValue) {
+                inputCfg.accessToken = newValue;
+              },
+            ),
+          ],
+        ), onTap: () async {
+      try {
+        config.longPortConfig = inputCfg;
+        if (context.mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (context.mounted) {
+          BrnToast.show("配置有误！", context);
+        }
+      }
+    });
   }
 
   Future<void> checkAndShowWindow() async {
@@ -382,7 +420,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       for (var stock in config.stockList)
                         Dismissible(
-                            key: Key(stock.key),
+                            key: Key(stock.symbol),
                             background: Container(color: Colors.red),
                             direction: DismissDirection.endToStart,
                             confirmDismiss: (direction) => deleteStock(stock),

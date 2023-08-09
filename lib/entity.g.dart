@@ -55,26 +55,21 @@ StockInfo _$StockInfoFromJson(Map<String, dynamic> json) => StockInfo(
       code: json['code'] as String,
       type: json['type'] as String,
       name: json['name'] as String,
-      price: json['price'] == null
-          ? null
-          : StockRtInfo.fromJson(json['price'] as Map<String, dynamic>),
       showInFloat: json['showInFloat'] as bool? ?? true,
-    )..lastPrice = (json['lastPrice'] as num?)?.toDouble();
+    );
 
 Map<String, dynamic> _$StockInfoToJson(StockInfo instance) => <String, dynamic>{
       'code': instance.code,
       'type': instance.type,
       'name': instance.name,
       'showInFloat': instance.showInFloat,
-      'price': instance.price,
-      'lastPrice': instance.lastPrice,
     };
 
 LongPortConfig _$LongPortConfigFromJson(Map<String, dynamic> json) =>
     LongPortConfig(
-      appKey: json['appKey'] as String,
-      appSecret: json['appSecret'] as String,
-      accessToken: json['accessToken'] as String,
+      json['appKey'] as String,
+      json['appSecret'] as String,
+      json['accessToken'] as String,
     );
 
 Map<String, dynamic> _$LongPortConfigToJson(LongPortConfig instance) =>

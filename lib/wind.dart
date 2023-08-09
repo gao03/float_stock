@@ -22,19 +22,18 @@ class FloatWindowView extends StatefulWidget {
 
 class _FloatWindowViewState extends State<FloatWindowView> {
   late AppConfig config;
-  Timer? timer;
   List<StockInfo>? stockList;
-  Map<String, StockInfo> oldStockPriceMap = HashMap();
 
   Window? w;
   final int stockHeightBase = 400;
   final Longport ls = Longport();
+  bool lsInit = false;
 
   @override
   void initState() {
     super.initState();
     config = widget.config;
-    initLs();
+    checkAndInitLs();
     updateStockList(config.stockList);
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -47,15 +46,18 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     });
   }
 
-  void initLs() async {
-    await ls.init(
-        "", "", "",
-        onQuote);
+  void checkAndInitLs() async {
+    var c = config.longPortConfig;
+    if (c != null && !lsInit) {
+      await ls.init(c.appKey, c.appSecret, c.accessToken, onQuote);
+      lsInit = true;
+    }
   }
 
   Future<void> onQuote(String symbol, PushQuote quote) async {
     for (var stock in stockList!) {
-      if (symbol.startsWith(stock.code.toUpperCase())) {
+      if (symbol.startsWith(stock.code.toUpperCase()) && quote.lastDone != null) {
+        stock.color = getStockColor(quote.lastDone, stock.lastPrice);
         stock.lastPrice = quote.lastDone!;
         break;
       }
@@ -70,6 +72,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       config = newConfig;
       updateStockList(config.stockList);
     });
+    checkAndInitLs();
     await w?.show(visible: newConfig.floatConfig.enable);
     // var screenHeight = w?.system?.screenHeight ?? newConfig.floatConfig.screenHeight;
     var screenWidth = w?.system?.screenWidth ?? newConfig.floatConfig.screenWidth;
@@ -79,19 +82,9 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     ));
   }
 
-  void updateStockList(var newStockList) {
-    // 如果新传过来的数据没有价格信息，就用老得价格
-    var stockMap = {for (var e in config.stockList) e.key: e};
-    for (var stock in newStockList) {
-      stock.price ??= stockMap[stock.key]?.price;
-    }
-    if (stockList != null) {
-      for (var stock in stockList!) {
-        oldStockPriceMap[stock.key] = stock;
-      }
-    }
+  void updateStockList(List<StockInfo> newStockList) {
     var filterStockList = newStockList.where((i) => i.showInFloat == true).where(checkStockCanShow).toList();
-    ls.subscribes(filterStockList.map((e) => ("${e.code}.US").toUpperCase()).toList().cast<String>());
+    ls.subscribes(filterStockList.map((e) => e.symbol).toList().cast<String>());
     setState(() {
       stockList = filterStockList;
     });
@@ -106,25 +99,19 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     return [stock.name, stock.code, formatNum(stock.lastPrice), '${formatNum(getShowDiff(stock))}%'][index];
   }
 
-  Color getStockColor(StockInfo stock) {
-    if (config.floatConfig.fontColorType == "黑色" || stock.price == null) {
+  Color getStockColor(double? curPrice, double? oldPrice) {
+    if (config.floatConfig.fontColorType == "黑色" || curPrice == null || oldPrice == null) {
       return Colors.black;
     }
-    if (config.floatConfig.fontColorType == "当日涨跌") {
-      var showDiff = getShowDiff(stock) ?? 0;
-      return showDiff == 0
-          ? Colors.black
-          : showDiff > 0
-              ? Colors.red
-              : Colors.green;
-    }
+    // if (config.floatConfig.fontColorType == "当日涨跌") {
+    //   var showDiff = getShowDiff(stock) ?? 0;
+    //   return showDiff == 0
+    //       ? Colors.black
+    //       : showDiff > 0
+    //           ? Colors.red
+    //           : Colors.green;
+    // }
     if (config.floatConfig.fontColorType == "同比涨跌") {
-      var old = oldStockPriceMap[stock.key];
-      if (old == null) {
-        return Colors.black;
-      }
-      double curPrice = getShowPrice(stock) ?? 0;
-      double oldPrice = getShowPrice(old) ?? 0;
       return curPrice == oldPrice
           ? Colors.black
           : curPrice > oldPrice
@@ -165,12 +152,12 @@ class _FloatWindowViewState extends State<FloatWindowView> {
                     Column(children: [
                       Text(generateStockText(stock),
                           style: TextStyle(
-                            color: getStockColor(stock),
+                            color: stock.color,
                             fontSize: config.floatConfig.fontSize,
                           ),
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.left),
-                      Offstage(offstage: (stock.key == stockList!.last.key), child: const Divider(indent: 15)),
+                      Offstage(offstage: (stock.symbol == stockList!.last.symbol), child: const Divider(indent: 15)),
                     ])
                 ]))));
   }

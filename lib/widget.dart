@@ -68,12 +68,6 @@ class StockInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var diff = getShowDiff(stock) ?? 0;
-    var color = diff > 0
-        ? Colors.red
-        : diff == 0
-            ? Colors.black
-            : Colors.green;
     return Container(
       padding: BrnDefaultConfigUtils.defaultFormItemConfig.formPadding,
       child: Column(

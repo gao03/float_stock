@@ -189,24 +189,10 @@ bool isWinterTime(DateTime dt) {
   return false;
 }
 
-double? getShowPrice(StockInfo stock) {
-  if (stock.type != "gb_") {
-    return stock.price?.currentPrice;
-  }
-  if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
-    return stock.price?.outPrice;
-  }
-  return stock.price?.currentPrice;
-}
+
 
 double? getShowDiff(StockInfo stock) {
-  if (stock.type != "gb_") {
-    return stock.price?.currentDiff;
-  }
-  if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
-    return stock.price?.outDiff;
-  }
-  return stock.price?.currentDiff;
+  return null;
 }
 
 String formatNum(double? num) {

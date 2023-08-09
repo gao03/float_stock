@@ -259,8 +259,7 @@ class PushQuote {
   String? tradeSession;
   String? tradeStatus;
 
-  PushQuote(
-      {this.high, this.lastDone, this.low, this.open, this.tradeSession, this.tradeStatus});
+  PushQuote({this.high, this.lastDone, this.low, this.open, this.tradeSession, this.tradeStatus});
 
   PushQuote.fromJson(Map<String, dynamic> json) {
     high = json['high'];
@@ -279,6 +278,71 @@ class PushQuote {
     data['open'] = open;
     data['tradeSession'] = tradeSession;
     data['tradeStatus'] = tradeStatus;
+    return data;
+  }
+}
+
+class SecurityStaticInfo {
+  String? board;
+  double? bps;
+  int? circulatingShares;
+  String? currency;
+  String? exchange;
+  int? hkShares;
+  int? lotSize;
+  String? nameCn;
+  String? nameEn;
+  String? nameHk;
+  List<String>? stockDerivatives;
+  String? symbol;
+  int? totalShares;
+
+  SecurityStaticInfo(
+      {this.board,
+      this.bps,
+      this.circulatingShares,
+      this.currency,
+      this.exchange,
+      this.hkShares,
+      this.lotSize,
+      this.nameCn,
+      this.nameEn,
+      this.nameHk,
+      this.stockDerivatives,
+      this.symbol,
+      this.totalShares});
+
+  SecurityStaticInfo.fromJson(Map<String, dynamic> json) {
+    board = json['board'];
+    bps = json['bps'];
+    circulatingShares = json['circulatingShares'];
+    currency = json['currency'];
+    exchange = json['exchange'];
+    hkShares = json['hkShares'];
+    lotSize = json['lotSize'];
+    nameCn = json['nameCn'];
+    nameEn = json['nameEn'];
+    nameHk = json['nameHk'];
+    stockDerivatives = json['stockDerivatives'].cast<String>();
+    symbol = json['symbol'];
+    totalShares = json['totalShares'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['board'] = this.board;
+    data['bps'] = this.bps;
+    data['circulatingShares'] = this.circulatingShares;
+    data['currency'] = this.currency;
+    data['exchange'] = this.exchange;
+    data['hkShares'] = this.hkShares;
+    data['lotSize'] = this.lotSize;
+    data['nameCn'] = this.nameCn;
+    data['nameEn'] = this.nameEn;
+    data['nameHk'] = this.nameHk;
+    data['stockDerivatives'] = this.stockDerivatives;
+    data['symbol'] = this.symbol;
+    data['totalShares'] = this.totalShares;
     return data;
   }
 }

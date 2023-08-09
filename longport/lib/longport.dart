@@ -3,25 +3,24 @@ import 'package:longport/entity.dart';
 import 'longport_platform_interface.dart';
 
 class Longport {
-  Future<String> init(
-      String appKey, String appSecret, String accessToken, Future<void> Function(String, PushQuote)? onQuote) async {
-    return LongportPlatform.instance.init(appKey, appSecret, accessToken, onQuote);
-  }
+  var isInit = false;
 
-  Future<void> subscribe(String symbol) async {
-    return LongportPlatform.instance.subscribe(symbol);
+  Future<void> init(
+      String appKey, String appSecret, String accessToken, Future<void> Function(String, PushQuote)? onQuote) async {
+    await LongportPlatform.instance.init(appKey, appSecret, accessToken, onQuote);
+    isInit = true;
   }
 
   Future<void> subscribes(List<String> symbols) async {
     return await LongportPlatform.instance.subscribes(symbols);
   }
 
-  Future<SecurityQuote> getQuote(String symbol) async {
-    return await LongportPlatform.instance.getQuote(symbol);
-  }
-
   Future<List<SecurityQuote>> getQuotes(List<String> symbols) async {
     return await LongportPlatform.instance.getQuotes(symbols);
+  }
+
+  Future<List<SecurityStaticInfo>> getStaticInfo(List<String> symbols) async {
+    return await LongportPlatform.instance.getStaticInfo(symbols);
   }
 
   Future<List<WatchListGroup>> getWatchList() async {

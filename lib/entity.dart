@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:json_annotation/json_annotation.dart';
 
@@ -83,12 +84,16 @@ class StockInfo extends ToJsonString {
   String type;
   String name;
   bool showInFloat;
-  StockRtInfo? price;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  double? lastDiff;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   double? lastPrice;
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  Color? color;
 
-  StockInfo({required this.code, required this.type, required this.name, this.price, this.showInFloat = true});
+  StockInfo({required this.code, required this.type, required this.name, this.showInFloat = true});
 
-  String get key {
+  String get symbol {
     return '$code.$type';
   }
 
@@ -104,7 +109,7 @@ class LongPortConfig extends ToJsonString {
   String appSecret;
   String accessToken;
 
-  LongPortConfig({required this.appKey, required this.appSecret, required this.accessToken});
+  LongPortConfig(this.appKey, this.appSecret, this.accessToken);
 
   factory LongPortConfig.fromJson(Map<String, dynamic> json) => _$LongPortConfigFromJson(json);
 

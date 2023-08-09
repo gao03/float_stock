@@ -26,15 +26,12 @@ class MethodChannelLongport extends LongportPlatform {
   }
 
   Future<dynamic> onMethodCall(MethodCall call) async {
+    print(call.method);
+    print(call.arguments);
     if (call.method == "onQuote" && onQuote != null) {
       var event = PushQuoteEvent.fromJson(jsonDecode(call.arguments));
       await onQuote!.call(event.symbol!, event.event!);
     }
-  }
-
-  @override
-  Future<String> subscribe(String symbol) async {
-    return await invoke("subscribe", symbol);
   }
 
   @override
@@ -43,15 +40,15 @@ class MethodChannelLongport extends LongportPlatform {
   }
 
   @override
-  Future<SecurityQuote> getQuote(String symbol) async {
-    var resp = await invoke("getQuote", symbol);
-    return SecurityQuote.fromJson(jsonDecode(resp));
-  }
-
-  @override
   Future<List<SecurityQuote>> getQuotes(List<String> symbols) async {
     var resp = await invoke("getQuotes", symbols);
     return List<SecurityQuote>.from(json.decode(resp).map((model) => SecurityQuote.fromJson(model)));
+  }
+
+  @override
+  Future<List<SecurityStaticInfo>> getStaticInfo(List<String> symbols) async {
+    var resp = await invoke("getStaticInfo", symbols);
+    return List<SecurityStaticInfo>.from(json.decode(resp).map((model) => SecurityStaticInfo.fromJson(model)));
   }
 
   @override
@@ -67,8 +64,15 @@ class MethodChannelLongport extends LongportPlatform {
   }
 
   Future<String> invoke(String method, [dynamic arguments]) async {
-    var result = await channel.invokeMethod(method, jsonEncode(arguments));
-    debugPrint("invoke: $method , $result");
-    return result;
+    try {
+      print("invoke longport $method");
+      var result = await channel.invokeMethod(method, jsonEncode(arguments));
+      print("invoke: $method , $result");
+      return result;
+    } catch (e) {
+      print("longport method error $method");
+      print(e);
+      return "";
+    }
   }
 }
