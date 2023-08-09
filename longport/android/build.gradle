@@ -36,6 +36,7 @@ android {
     dependencies {
         implementation "io.github.longbridgeapp:openapi-sdk:0.2.64"
         implementation 'org.apache.commons:commons-lang3:3.12.0'
+        implementation 'org.slf4j:slf4j-simple:2.0.7'
         testImplementation 'junit:junit:4.13.2'
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }

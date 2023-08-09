@@ -85,10 +85,10 @@ int _globalTimeOffset = 3;
 
 MarketStatus checkMarketStatus(String type) {
   var checkFuncMap = {
-    "gb_": checkUsMarketStatus,
-    "sz": checkDaMarketStatus,
-    "sh": checkDaMarketStatus,
-    "rt_hk": checkHkMarketStatus
+    "US": checkUsMarketStatus,
+    "SZ": checkDaMarketStatus,
+    "SH": checkDaMarketStatus,
+    "HK": checkHkMarketStatus
   };
   var func = checkFuncMap[type];
   return func == null ? MarketStatus.open : func();

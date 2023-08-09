@@ -63,8 +63,15 @@ class _FloatWindowViewState extends State<FloatWindowView> {
       }
     }
     setState(() {
-      stockList = stockList;
+      stockList = stockList?.where(checkStockCanShow).toList();
     });
+  }
+
+  bool checkStockCanShow(StockInfo stock) {
+    if (!stock.showInFloat) {
+      return false;
+    }
+    return checkMarketStatus(stock.type) != MarketStatus.close;
   }
 
   void refresh(AppConfig newConfig) async {
@@ -120,13 +127,6 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     }
 
     return Colors.black;
-  }
-
-  bool checkStockCanShow(StockInfo stock) {
-    if (!stock.showInFloat) {
-      return false;
-    }
-    return checkMarketStatus(stock.type) != MarketStatus.close;
   }
 
   @override

@@ -218,7 +218,11 @@ class _HomePageState extends State<HomePage> {
       window.show(visible: true);
     }
 
-    await shareDataToFloat(config.toJson(), "config");
+    try {
+      await shareDataToFloat(config.toJson(), "config");
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> shareDataToFloat(dynamic data, String name) async {
