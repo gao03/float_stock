@@ -3,6 +3,7 @@ package com.gaozhiqiang03.float_stock.longport;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -107,6 +108,8 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
         } catch (Exception e) {
             System.out.println("call.method: " + ExceptionUtils.getStackTrace(e));
             result.error("-1", e.getMessage(), ExceptionUtils.getStackTrace(e));
+        } catch (Throwable t) {
+            Log.d("longport", "onMethodCall: " + ExceptionUtils.getStackTrace(t));
         }
     }
 }

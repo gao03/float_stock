@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage> {
 
   double? _maxHeight;
   double? _maxWidth;
+  final _debouncer = Debouncer(milliseconds: 500);
 
   @override
   void initState() {
@@ -300,7 +301,9 @@ class _HomePageState extends State<HomePage> {
 
   void setStateAndSave(VoidCallback fn) {
     setState(fn);
-    updateConfigAndRefresh();
+    _debouncer.run(() {
+      updateConfigAndRefresh();
+    });
   }
 
   @override
@@ -336,8 +339,8 @@ class _HomePageState extends State<HomePage> {
                       }),
                   SliderWidget(
                       title: "窗口宽度",
-                      minValue: 0.05,
-                      maxValue: 1,
+                      minValue: 0.01,
+                      maxValue: 0.5,
                       value: config.floatConfig.windowWidth,
                       onChanged: (data) {
                         setStateAndSave(() {
@@ -356,8 +359,8 @@ class _HomePageState extends State<HomePage> {
                       }),
                   SliderWidget(
                       title: "字体大小",
-                      minValue: 10,
-                      maxValue: 60,
+                      minValue: 5,
+                      maxValue: 30,
                       value: config.floatConfig.fontSize,
                       label: config.floatConfig.fontSize.toStringAsFixed(1),
                       onChanged: (data) {
@@ -365,18 +368,6 @@ class _HomePageState extends State<HomePage> {
                           config.floatConfig.fontSize = data;
                         });
                       }),
-                  SliderWidget(
-                    value: config.floatConfig.frequency.toDouble(),
-                    title: "刷新频率",
-                    minValue: 1,
-                    maxValue: 100,
-                    label: "${config.floatConfig.frequency.toInt()}秒",
-                    onChanged: (data) {
-                      setStateAndSave(() {
-                        config.floatConfig.frequency = data.toInt();
-                      });
-                    },
-                  ),
                   BrnRadioInputFormItem(
                     title: "字体颜色",
                     options: const ["黑色", "当日涨跌", "同比涨跌"],

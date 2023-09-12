@@ -31,6 +31,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
 
   @override
   void initState() {
+    WidgetsFlutterBinding.ensureInitialized();
+
     super.initState();
     config = widget.config;
     checkAndInitLs();

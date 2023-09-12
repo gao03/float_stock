@@ -2,6 +2,10 @@ import 'package:bruno/bruno.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+
 import 'entity.dart';
 
 void showLoadingDialog(BuildContext context, String message) {
@@ -189,8 +193,6 @@ bool isWinterTime(DateTime dt) {
   return false;
 }
 
-
-
 double? getShowDiff(StockInfo stock) {
   return null;
 }
@@ -207,4 +209,20 @@ String formatNum(double? num) {
   }
 
   return num.toStringAsFixed(2);
+}
+
+class Debouncer {
+  final int milliseconds;
+  Timer? _timer;
+
+  Debouncer({required this.milliseconds});
+
+  void run(VoidCallback action) {
+    _timer?.cancel();
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+
+  void dispose() {
+    _timer?.cancel();
+  }
 }
