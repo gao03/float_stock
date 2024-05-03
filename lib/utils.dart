@@ -1,6 +1,8 @@
 import 'package:bruno/bruno.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'dart:async';
+
 
 import 'entity.dart';
 
@@ -85,10 +87,10 @@ int _globalTimeOffset = 3;
 
 MarketStatus checkMarketStatus(String type) {
   var checkFuncMap = {
-    "gb_": checkUsMarketStatus,
-    "sz": checkDaMarketStatus,
-    "sh": checkDaMarketStatus,
-    "rt_hk": checkHkMarketStatus
+    "US": checkUsMarketStatus,
+    "SZ": checkDaMarketStatus,
+    "SH": checkDaMarketStatus,
+    "HK": checkHkMarketStatus
   };
   var func = checkFuncMap[type];
   return func == null ? MarketStatus.open : func();
@@ -189,24 +191,8 @@ bool isWinterTime(DateTime dt) {
   return false;
 }
 
-double? getShowPrice(StockInfo stock) {
-  if (stock.type != "gb_") {
-    return stock.price?.currentPrice;
-  }
-  if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
-    return stock.price?.outPrice;
-  }
-  return stock.price?.currentPrice;
-}
-
 double? getShowDiff(StockInfo stock) {
-  if (stock.type != "gb_") {
-    return stock.price?.currentDiff;
-  }
-  if (checkUsMarketStatus() == MarketStatus.pre || checkUsMarketStatus() == MarketStatus.post) {
-    return stock.price?.outDiff;
-  }
-  return stock.price?.currentDiff;
+  return null;
 }
 
 String formatNum(double? num) {
@@ -221,4 +207,20 @@ String formatNum(double? num) {
   }
 
   return num.toStringAsFixed(2);
+}
+
+class Debouncer {
+  final int milliseconds;
+  Timer? _timer;
+
+  Debouncer({required this.milliseconds});
+
+  void run(VoidCallback action) {
+    _timer?.cancel();
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+
+  void dispose() {
+    _timer?.cancel();
+  }
 }

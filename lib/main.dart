@@ -1,21 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
-import 'dart:ui';
 
 import 'package:bruno/bruno.dart';
-import 'package:float_stock/api.dart';
 import 'package:float_stock/config.dart';
-import 'package:float_stock/data.dart';
+import 'package:float_stock/sina.dart';
 import 'package:float_stock/utils.dart';
 import 'package:float_stock/widget.dart';
 import 'package:float_stock/wind.dart';
 import 'package:float_stock/entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
-import 'package:collection/collection.dart';
+import "package:collection/collection.dart";
 import 'package:flutter/rendering.dart';
+import 'dart:developer';
 
 late AppConfig config;
 
@@ -24,7 +22,8 @@ void main() async {
   config = await readConfig();
   BrnInitializer.register(
       allThemeConfig: BrnAllThemeConfig(
-    commonConfig: BrnCommonConfig(brandPrimary: Colors.red, brandAuxiliary: Colors.redAccent),
+    commonConfig: BrnCommonConfig(
+        brandPrimary: Colors.red, brandAuxiliary: Colors.redAccent),
   ));
   runApp(const App());
 }
@@ -38,7 +37,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: '盯盘',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.red, scaffoldBackgroundColor: Colors.white),
+      theme: ThemeData(
+          primarySwatch: Colors.red, scaffoldBackgroundColor: Colors.white),
       initialRoute: "/",
       routes: {
         "/": (_) => const HomePage(title: "盯"),
@@ -72,33 +72,17 @@ class _HomePageState extends State<HomePage> {
 
   double? _maxHeight;
   double? _maxWidth;
-  Timer? timer;
+  final _debouncer = Debouncer(milliseconds: 500);
 
   @override
   void initState() {
     super.initState();
-    floatWindowSelectColumnFlagList =
-        floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
-    initStateAsync();
-  }
-
-  void initStateAsync() async {
-    await _createWindows();
-
-    Timer(const Duration(seconds: 5), () {
-      timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
-        refreshStockData();
-      });
-    });
-  }
-
-  void refreshStockData() async {
-    var newStockData = await getStockLatestInfo(config.stockList);
-    setState(() {
-      config.stockList = newStockData;
-    });
-    var stockListStr = newStockData.where((i) => i.showInFloat).map((e) => e.toJson()).toList();
-    await shareDataToFloat(stockListStr, "stockList");
+    floatWindowSelectColumnFlagList = floatWindowColumn
+        .asMap()
+        .keys
+        .map((e) => config.floatConfig.showColumns.contains(e))
+        .toList();
+    _createWindows();
   }
 
   _createWindows() async {
@@ -121,7 +105,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   String get floatSelectColumnStr {
-    return config.floatConfig.showColumns.map((e) => floatWindowColumn[e]).toList().join(",");
+    return config.floatConfig.showColumns
+        .map((e) => floatWindowColumn[e])
+        .toList()
+        .join(",");
   }
 
   checkFloatPermission() async {
@@ -140,15 +127,16 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    var _w = FloatwingPlugin().windows[window.id];
-    if (null != _w) {
+    var w = FloatwingPlugin().windows[window.id];
+    if (null != w) {
       return;
     }
     await window.create(start: true);
   }
 
   void addNewStock(StockInfo stock) async {
-    var oldStock = config.stockList.firstWhereOrNull((e) => e.key == stock.key);
+    var oldStock =
+        config.stockList.firstWhereOrNull((e) => e.symbol == stock.symbol);
     if (oldStock != null) {
       BrnToast.show("${stock.name}已经在列表中了", context);
       // 添加的时候，默认展示在悬浮窗
@@ -164,12 +152,15 @@ class _HomePageState extends State<HomePage> {
     if (!isConfirm) {
       return false;
     }
-    config.stockList.removeWhere((element) => element.key == stock.key);
+    config.stockList.removeWhere((element) => element.symbol == stock.symbol);
     await updateConfigAndRefresh();
     return true;
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
+    var start = DateTime.now();
+    log('start: $start');
+
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
     config.stockList.sort((a, b) => a.showInFloat == b.showInFloat
@@ -179,19 +170,58 @@ class _HomePageState extends State<HomePage> {
             : 1);
 
     await checkFloatPermission();
-
+    log('checkFloatPermission: ${start.difference(DateTime.now())}');
+    await checkLongPortConfig();
+    log('checkLongPortConfig: ${start.difference(DateTime.now())}');
     var result = await updateConfig(config);
+    log('updateConfig: ${start.difference(DateTime.now())}');
     if (context.mounted && notify && !result) {
       BrnToast.show("操作失败", context);
     }
 
-    timer?.cancel();
-    timer = Timer.periodic(Duration(seconds: config.floatConfig.frequency), (timer) {
-      refreshStockData();
-    });
-
     await checkAndShowWindow();
+    log('checkAndShowWindow: ${start.difference(DateTime.now())}');
+
     setState(() {});
+  }
+
+  Future<void> checkLongPortConfig() async {
+    if (config.longPortConfig != null &&
+        config.longPortConfig!.appKey.isNotEmpty) {
+      return;
+    }
+    var inputCfg = LongPortConfig("", "", "");
+    BrnDialogManager.showSingleButtonDialog(context,
+        label: "确定",
+        title: "请填写 LongPort 配置",
+        messageWidget: NormalFormGroup(
+          title: "",
+          children: [
+            BrnTextInputFormItem(
+              title: "App Key",
+              onChanged: (newValue) {
+                inputCfg.appKey = newValue.trim();
+              },
+            ),
+            BrnTextInputFormItem(
+              title: "App Secret",
+              onChanged: (newValue) {
+                inputCfg.appSecret = newValue.trim();
+              },
+            ),
+            BrnTextInputFormItem(
+              title: "Access Token",
+              onChanged: (newValue) {
+                inputCfg.accessToken = newValue.trim();
+              },
+            ),
+          ],
+        ), onTap: () async {
+      config.longPortConfig = inputCfg;
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    });
   }
 
   Future<void> checkAndShowWindow() async {
@@ -200,14 +230,20 @@ class _HomePageState extends State<HomePage> {
       window.show(visible: true);
     }
 
-    await shareDataToFloat(config.toJson(), "config");
+    try {
+      await shareDataToFloat(config.toJson(), "config");
+    } catch (e) {
+      log("checkAndShowWindow", error: e);
+    }
   }
 
   Future<void> shareDataToFloat(dynamic data, String name) async {
     try {
-      return FloatwingPlugin().windows[window.id]?.share(jsonEncode(data), name: name);
+      return FloatwingPlugin()
+          .windows[window.id]
+          ?.share(jsonEncode(data), name: name);
     } catch (e) {
-      print(e);
+      log("shareDataToFloat", error: e);
     }
   }
 
@@ -215,7 +251,8 @@ class _HomePageState extends State<HomePage> {
     var selectedIndex = 0;
 
     if (stockList.length == 1) {
-      var isConfirm = await showConfirmDialog(context, "确定选择【${stockList[0].name}】?");
+      var isConfirm =
+          await showConfirmDialog(context, "确定选择【${stockList[0].name}】?");
       if (!isConfirm) {
         selectedIndex = -1;
       }
@@ -278,7 +315,9 @@ class _HomePageState extends State<HomePage> {
 
   void setStateAndSave(VoidCallback fn) {
     setState(fn);
-    updateConfigAndRefresh();
+    _debouncer.run(() {
+      updateConfigAndRefresh();
+    });
   }
 
   @override
@@ -314,8 +353,8 @@ class _HomePageState extends State<HomePage> {
                       }),
                   SliderWidget(
                       title: "窗口宽度",
-                      minValue: 0.05,
-                      maxValue: 1,
+                      minValue: 0.01,
+                      maxValue: 0.5,
                       value: config.floatConfig.windowWidth,
                       onChanged: (data) {
                         setStateAndSave(() {
@@ -334,8 +373,8 @@ class _HomePageState extends State<HomePage> {
                       }),
                   SliderWidget(
                       title: "字体大小",
-                      minValue: 10,
-                      maxValue: 60,
+                      minValue: 5,
+                      maxValue: 30,
                       value: config.floatConfig.fontSize,
                       label: config.floatConfig.fontSize.toStringAsFixed(1),
                       onChanged: (data) {
@@ -343,18 +382,6 @@ class _HomePageState extends State<HomePage> {
                           config.floatConfig.fontSize = data;
                         });
                       }),
-                  SliderWidget(
-                    value: config.floatConfig.frequency.toDouble(),
-                    title: "刷新频率",
-                    minValue: 1,
-                    maxValue: 100,
-                    label: "${config.floatConfig.frequency.toInt()}秒",
-                    onChanged: (data) {
-                      setStateAndSave(() {
-                        config.floatConfig.frequency = data.toInt();
-                      });
-                    },
-                  ),
                   BrnRadioInputFormItem(
                     title: "字体颜色",
                     options: const ["黑色", "当日涨跌", "同比涨跌"],
@@ -379,7 +406,8 @@ class _HomePageState extends State<HomePage> {
                         } else {
                           config.floatConfig.showColumns.add(index);
                         }
-                        floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
+                        floatWindowSelectColumnFlagList[index] =
+                            !floatWindowSelectColumnFlagList[index];
                       });
                     },
                   ),
@@ -402,7 +430,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       for (var stock in config.stockList)
                         Dismissible(
-                            key: Key(stock.key),
+                            key: Key(stock.symbol),
                             background: Container(color: Colors.red),
                             direction: DismissDirection.endToStart,
                             confirmDismiss: (direction) => deleteStock(stock),
@@ -412,7 +440,9 @@ class _HomePageState extends State<HomePage> {
                                   setStateAndSave(() {
                                     stock.showInFloat = value;
                                   });
-                                  BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
+                                  BrnToast.show(
+                                      "在悬浮窗${value ? '' : '不'}展示${stock.name}",
+                                      context);
                                 })),
                     ]),
               ])))),

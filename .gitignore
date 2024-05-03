@@ -328,3 +328,5 @@ fabric.properties
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,androidstudio,visualstudiocode,dart,flutter,android,java
+
+!longport/android/src/main/jniLibs/arm64-v8a/liblongbridge_java.so

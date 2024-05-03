@@ -55,9 +55,6 @@ StockInfo _$StockInfoFromJson(Map<String, dynamic> json) => StockInfo(
       code: json['code'] as String,
       type: json['type'] as String,
       name: json['name'] as String,
-      price: json['price'] == null
-          ? null
-          : StockRtInfo.fromJson(json['price'] as Map<String, dynamic>),
       showInFloat: json['showInFloat'] as bool? ?? true,
     );
 
@@ -66,17 +63,36 @@ Map<String, dynamic> _$StockInfoToJson(StockInfo instance) => <String, dynamic>{
       'type': instance.type,
       'name': instance.name,
       'showInFloat': instance.showInFloat,
-      'price': instance.price,
+    };
+
+LongPortConfig _$LongPortConfigFromJson(Map<String, dynamic> json) =>
+    LongPortConfig(
+      json['appKey'] as String,
+      json['appSecret'] as String,
+      json['accessToken'] as String,
+    );
+
+Map<String, dynamic> _$LongPortConfigToJson(LongPortConfig instance) =>
+    <String, dynamic>{
+      'appKey': instance.appKey,
+      'appSecret': instance.appSecret,
+      'accessToken': instance.accessToken,
     };
 
 AppConfig _$AppConfigFromJson(Map<String, dynamic> json) => AppConfig(
-      FloatConfig.fromJson(json['floatConfig'] as Map<String, dynamic>),
-      (json['stockList'] as List<dynamic>)
+      floatConfig:
+          FloatConfig.fromJson(json['floatConfig'] as Map<String, dynamic>),
+      stockList: (json['stockList'] as List<dynamic>)
           .map((e) => StockInfo.fromJson(e as Map<String, dynamic>))
           .toList(),
+      longPortConfig: json['longPortConfig'] == null
+          ? null
+          : LongPortConfig.fromJson(
+              json['longPortConfig'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$AppConfigToJson(AppConfig instance) => <String, dynamic>{
       'floatConfig': instance.floatConfig,
       'stockList': instance.stockList,
+      'longPortConfig': instance.longPortConfig,
     };

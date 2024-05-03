@@ -1,22 +1,23 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String ConfigSaveKey = "FloatStockConfig";
+const configSaveKey = "FloatStockConfig";
 
 Future<AppConfig> readConfig() async {
   try {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    var s = sharedPreferences.getString(ConfigSaveKey);
+    var s = sharedPreferences.getString(configSaveKey);
     if (s != null) {
       return AppConfig.fromJson(jsonDecode(s));
     }
   } catch (e) {
-    print(e);
+    log("read config error", error: e);
   }
   return AppConfig(
-      FloatConfig(
+      floatConfig: FloatConfig(
           enable: false,
           opacity: 0.5,
           showColumns: [],
@@ -26,17 +27,17 @@ Future<AppConfig> readConfig() async {
           screenHeight: 1000,
           screenWidth: 800,
           fontSize: 20,
-      fontColorType: "黑色"),
-      []);
+          fontColorType: "黑色"),
+      stockList: []);
 }
 
 Future<bool> updateConfig(AppConfig appConfig) async {
   try {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setString(ConfigSaveKey, jsonEncode(appConfig.toJson()));
+    sharedPreferences.setString(configSaveKey, jsonEncode(appConfig.toJson()));
     return true;
   } catch (e) {
-    print(e);
+    log("update config error", error: e);
     return false;
   }
 }
