@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:longport/entity.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';

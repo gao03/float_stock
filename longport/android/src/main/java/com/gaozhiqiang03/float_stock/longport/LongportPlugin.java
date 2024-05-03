@@ -10,11 +10,9 @@ import androidx.annotation.RequiresApi;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.longbridge.ConfigBuilder;
-import com.longbridge.quote.PushQuote;
-import com.longbridge.quote.QuoteHandler;
-import com.longbridge.trade.OrderChangedHandler;
-import com.longbridge.trade.PushOrderChanged;
+import com.longport.ConfigBuilder;
+import com.longport.quote.*;
+import com.longport.trade.*;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -106,10 +104,10 @@ public class LongportPlugin implements FlutterPlugin, MethodCallHandler, QuoteHa
             }
             result.success(new Gson().toJson(response));
         } catch (Exception e) {
-            System.out.println("call.method: " + ExceptionUtils.getStackTrace(e));
+            Log.e(getClass().getSimpleName(), "call.method:" + call.method, e);
             result.error("-1", e.getMessage(), ExceptionUtils.getStackTrace(e));
         } catch (Throwable t) {
-            Log.d("longport", "onMethodCall: " + ExceptionUtils.getStackTrace(t));
+            Log.e(getClass().getSimpleName(), "call.method:" + call.method + ", Throwable", t);
         }
     }
 }

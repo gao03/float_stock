@@ -1,26 +1,18 @@
 package com.gaozhiqiang03.float_stock.longport;
 
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import com.longbridge.ConfigBuilder;
-import com.longbridge.OpenApiException;
-import com.longbridge.quote.PushQuote;
-import com.longbridge.quote.QuoteContext;
-import com.longbridge.quote.QuoteHandler;
-import com.longbridge.quote.SecurityQuote;
-import com.longbridge.quote.SecurityStaticInfo;
-import com.longbridge.quote.WatchListGroup;
-import com.longbridge.trade.OrderChangedHandler;
-import com.longbridge.trade.PushOrderChanged;
-import com.longbridge.trade.StockPositionsResponse;
-import com.longbridge.trade.TradeContext;
+import com.google.gson.Gson;
+import com.longport.ConfigBuilder;
+import com.longport.OpenApiException;
+import com.longport.quote.*;
+import com.longport.trade.*;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class LongPortService {
@@ -36,6 +28,8 @@ public class LongPortService {
     }
 
     public void init(ConfigBuilder cfg) throws Exception {
+        Class<?> aClass = Class.forName("com.longport.quote.DerivativeType");
+        Log.e(getClass().getSimpleName(), "!!!!!!!!!!!!!!!DerivativeType: " + aClass.getName());
         quoteContext = get(QuoteContext.create(cfg.build()));
         tradeContext = get(TradeContext.create(cfg.build()));
         if (onQuote != null) {
@@ -53,12 +47,12 @@ public class LongPortService {
 
     public void subscribes(List<String> symbols) throws OpenApiException {
         checkInit();
-        get(quoteContext.subscribe(symbols.toArray(new String[0]), 15, true));
+        get(quoteContext.subscribe(symbols.toArray(new String[0]), SubFlags.Quote, true));
     }
 
-    public WatchListGroup[] getWatchList() throws OpenApiException {
+    public WatchlistGroup[] getWatchList() throws OpenApiException {
         checkInit();
-        return get(quoteContext.getWatchList());
+        return get(quoteContext.getWatchlist());
     }
 
     public StockPositionsResponse getStockPositions() throws OpenApiException {

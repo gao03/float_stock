@@ -52,18 +52,10 @@ android {
         versionName flutterVersionName
     }
 
-//    signingConfigs {
-//        release {
-//            keyAlias keystoreProperties['keyAlias']
-//            keyPassword keystoreProperties['keyPassword']
-//            storeFile file(keystoreProperties['storeFile'])
-//            storePassword keystoreProperties['storePassword']
-//        }
-//    }
     buildTypes {
         release {
-//            signingConfig signingConfigs.release
             signingConfig signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     namespace 'com.gaozhiqiang03.float_stock'
@@ -74,6 +66,6 @@ flutter {
 }
 
 dependencies {
-    implementation "io.github.longbridgeapp:openapi-sdk:0.2.64"
     implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'io.github.longportapp:openapi-sdk:1.0.23'
 }

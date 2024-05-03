@@ -11,8 +11,9 @@ import 'package:float_stock/wind.dart';
 import 'package:float_stock/entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
-import 'package:collection/collection.dart';
+import "package:collection/collection.dart";
 import 'package:flutter/rendering.dart';
+import 'dart:developer';
 
 late AppConfig config;
 
@@ -21,7 +22,8 @@ void main() async {
   config = await readConfig();
   BrnInitializer.register(
       allThemeConfig: BrnAllThemeConfig(
-    commonConfig: BrnCommonConfig(brandPrimary: Colors.red, brandAuxiliary: Colors.redAccent),
+    commonConfig: BrnCommonConfig(
+        brandPrimary: Colors.red, brandAuxiliary: Colors.redAccent),
   ));
   runApp(const App());
 }
@@ -35,7 +37,8 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: '盯盘',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.red, scaffoldBackgroundColor: Colors.white),
+      theme: ThemeData(
+          primarySwatch: Colors.red, scaffoldBackgroundColor: Colors.white),
       initialRoute: "/",
       routes: {
         "/": (_) => const HomePage(title: "盯"),
@@ -74,8 +77,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    floatWindowSelectColumnFlagList =
-        floatWindowColumn.asMap().keys.map((e) => config.floatConfig.showColumns.contains(e)).toList();
+    floatWindowSelectColumnFlagList = floatWindowColumn
+        .asMap()
+        .keys
+        .map((e) => config.floatConfig.showColumns.contains(e))
+        .toList();
     _createWindows();
   }
 
@@ -99,7 +105,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   String get floatSelectColumnStr {
-    return config.floatConfig.showColumns.map((e) => floatWindowColumn[e]).toList().join(",");
+    return config.floatConfig.showColumns
+        .map((e) => floatWindowColumn[e])
+        .toList()
+        .join(",");
   }
 
   checkFloatPermission() async {
@@ -118,15 +127,16 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    var _w = FloatwingPlugin().windows[window.id];
-    if (null != _w) {
+    var w = FloatwingPlugin().windows[window.id];
+    if (null != w) {
       return;
     }
     await window.create(start: true);
   }
 
   void addNewStock(StockInfo stock) async {
-    var oldStock = config.stockList.firstWhereOrNull((e) => e.symbol == stock.symbol);
+    var oldStock =
+        config.stockList.firstWhereOrNull((e) => e.symbol == stock.symbol);
     if (oldStock != null) {
       BrnToast.show("${stock.name}已经在列表中了", context);
       // 添加的时候，默认展示在悬浮窗
@@ -148,6 +158,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future updateConfigAndRefresh({notify = true}) async {
+    var start = DateTime.now();
+    log('start: $start');
+
     config.floatConfig.screenWidth = MediaQuery.of(context).size.width;
     config.floatConfig.screenHeight = MediaQuery.of(context).size.height;
     config.stockList.sort((a, b) => a.showInFloat == b.showInFloat
@@ -157,20 +170,24 @@ class _HomePageState extends State<HomePage> {
             : 1);
 
     await checkFloatPermission();
-
+    log('checkFloatPermission: ${start.difference(DateTime.now())}');
     await checkLongPortConfig();
+    log('checkLongPortConfig: ${start.difference(DateTime.now())}');
     var result = await updateConfig(config);
+    log('updateConfig: ${start.difference(DateTime.now())}');
     if (context.mounted && notify && !result) {
       BrnToast.show("操作失败", context);
     }
+
     await checkAndShowWindow();
+    log('checkAndShowWindow: ${start.difference(DateTime.now())}');
 
     setState(() {});
   }
 
   Future<void> checkLongPortConfig() async {
-    print(config.toJson());
-    if (config.longPortConfig != null && config.longPortConfig!.appKey.isNotEmpty) {
+    if (config.longPortConfig != null &&
+        config.longPortConfig!.appKey.isNotEmpty) {
       return;
     }
     var inputCfg = LongPortConfig("", "", "");
@@ -183,32 +200,26 @@ class _HomePageState extends State<HomePage> {
             BrnTextInputFormItem(
               title: "App Key",
               onChanged: (newValue) {
-                inputCfg.appKey = newValue;
+                inputCfg.appKey = newValue.trim();
               },
             ),
             BrnTextInputFormItem(
               title: "App Secret",
               onChanged: (newValue) {
-                inputCfg.appSecret = newValue;
+                inputCfg.appSecret = newValue.trim();
               },
             ),
             BrnTextInputFormItem(
               title: "Access Token",
               onChanged: (newValue) {
-                inputCfg.accessToken = newValue;
+                inputCfg.accessToken = newValue.trim();
               },
             ),
           ],
         ), onTap: () async {
-      try {
-        config.longPortConfig = inputCfg;
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
-      } catch (e) {
-        if (context.mounted) {
-          BrnToast.show("配置有误！", context);
-        }
+      config.longPortConfig = inputCfg;
+      if (context.mounted) {
+        Navigator.pop(context);
       }
     });
   }
@@ -222,15 +233,17 @@ class _HomePageState extends State<HomePage> {
     try {
       await shareDataToFloat(config.toJson(), "config");
     } catch (e) {
-      print(e);
+      log("checkAndShowWindow", error: e);
     }
   }
 
   Future<void> shareDataToFloat(dynamic data, String name) async {
     try {
-      return FloatwingPlugin().windows[window.id]?.share(jsonEncode(data), name: name);
+      return FloatwingPlugin()
+          .windows[window.id]
+          ?.share(jsonEncode(data), name: name);
     } catch (e) {
-      print(e);
+      log("shareDataToFloat", error: e);
     }
   }
 
@@ -238,7 +251,8 @@ class _HomePageState extends State<HomePage> {
     var selectedIndex = 0;
 
     if (stockList.length == 1) {
-      var isConfirm = await showConfirmDialog(context, "确定选择【${stockList[0].name}】?");
+      var isConfirm =
+          await showConfirmDialog(context, "确定选择【${stockList[0].name}】?");
       if (!isConfirm) {
         selectedIndex = -1;
       }
@@ -392,7 +406,8 @@ class _HomePageState extends State<HomePage> {
                         } else {
                           config.floatConfig.showColumns.add(index);
                         }
-                        floatWindowSelectColumnFlagList[index] = !floatWindowSelectColumnFlagList[index];
+                        floatWindowSelectColumnFlagList[index] =
+                            !floatWindowSelectColumnFlagList[index];
                       });
                     },
                   ),
@@ -425,7 +440,9 @@ class _HomePageState extends State<HomePage> {
                                   setStateAndSave(() {
                                     stock.showInFloat = value;
                                   });
-                                  BrnToast.show("在悬浮窗${value ? '' : '不'}展示${stock.name}", context);
+                                  BrnToast.show(
+                                      "在悬浮窗${value ? '' : '不'}展示${stock.name}",
+                                      context);
                                 })),
                     ]),
               ])))),

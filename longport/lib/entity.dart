@@ -20,7 +20,7 @@ class WatchListGroup {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
     data['name'] = name;
     if (securities != null) {
@@ -44,7 +44,7 @@ class Securities {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['market'] = market;
     data['name'] = name;
     data['symbol'] = symbol;
@@ -67,7 +67,7 @@ class StockPositionsResponse {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     if (channels != null) {
       data['channels'] = channels!.map((v) => v.toJson()).toList();
     }
@@ -92,7 +92,7 @@ class Channels {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['accountChannel'] = accountChannel;
     if (positions != null) {
       data['positions'] = positions!.map((v) => v.toJson()).toList();
@@ -130,7 +130,7 @@ class Positions {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['availableQuantity'] = availableQuantity;
     data['costPrice'] = costPrice;
     data['currency'] = currency;
@@ -180,7 +180,7 @@ class SecurityQuote {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['high'] = high;
     data['lastDone'] = lastDone;
     data['low'] = low;
@@ -219,7 +219,7 @@ class PostMarketQuote {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['high'] = high;
     data['lastDone'] = lastDone;
     data['low'] = low;
@@ -242,7 +242,7 @@ class PushQuoteEvent {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['symbol'] = symbol;
     if (event != null) {
       data['event'] = event!.toJson();
@@ -271,7 +271,7 @@ class PushQuote {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['high'] = high;
     data['lastDone'] = lastDone;
     data['low'] = low;
@@ -329,20 +329,20 @@ class SecurityStaticInfo {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['board'] = this.board;
-    data['bps'] = this.bps;
-    data['circulatingShares'] = this.circulatingShares;
-    data['currency'] = this.currency;
-    data['exchange'] = this.exchange;
-    data['hkShares'] = this.hkShares;
-    data['lotSize'] = this.lotSize;
-    data['nameCn'] = this.nameCn;
-    data['nameEn'] = this.nameEn;
-    data['nameHk'] = this.nameHk;
-    data['stockDerivatives'] = this.stockDerivatives;
-    data['symbol'] = this.symbol;
-    data['totalShares'] = this.totalShares;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['board'] = board;
+    data['bps'] = bps;
+    data['circulatingShares'] = circulatingShares;
+    data['currency'] = currency;
+    data['exchange'] = exchange;
+    data['hkShares'] = hkShares;
+    data['lotSize'] = lotSize;
+    data['nameCn'] = nameCn;
+    data['nameEn'] = nameEn;
+    data['nameHk'] = nameHk;
+    data['stockDerivatives'] = stockDerivatives;
+    data['symbol'] = symbol;
+    data['totalShares'] = totalShares;
     return data;
   }
 }

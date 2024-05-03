@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -26,8 +27,6 @@ class MethodChannelLongport extends LongportPlatform {
   }
 
   Future<dynamic> onMethodCall(MethodCall call) async {
-    print(call.method);
-    print(call.arguments);
     if (call.method == "onQuote" && onQuote != null) {
       var event = PushQuoteEvent.fromJson(jsonDecode(call.arguments));
       await onQuote!.call(event.symbol!, event.event!);
@@ -65,13 +64,12 @@ class MethodChannelLongport extends LongportPlatform {
 
   Future<String> invoke(String method, [dynamic arguments]) async {
     try {
-      print("invoke longport $method");
+      debugPrint("invoke longport $method ${jsonEncode(arguments)}");
       var result = await channel.invokeMethod(method, jsonEncode(arguments));
-      print("invoke: $method , $result");
+      debugPrint("invoke: $method , $result");
       return result;
     } catch (e) {
-      print("longport method error $method");
-      print(e);
+      debugPrint("longport method error $method: $e");
       return "";
     }
   }

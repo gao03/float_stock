@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer';
 
-import 'package:bruno/bruno.dart';
 import 'package:float_stock/entity.dart';
 import 'package:float_stock/utils.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +50,15 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   void checkAndInitLs() async {
     var c = config.longPortConfig;
     if (c != null && !lsInit) {
-      await ls.init(c.appKey, c.appSecret, c.accessToken, onQuote);
+      ls.init(c.appKey, c.appSecret, c.accessToken, onQuote);
       lsInit = true;
     }
   }
 
   Future<void> onQuote(String symbol, PushQuote quote) async {
     for (var stock in stockList!) {
-      if (symbol.startsWith(stock.code.toUpperCase()) && quote.lastDone != null) {
+      debugPrint("onQuote: $symbol");
+      if (symbol.startsWith(convertStockCode(stock).toUpperCase()) && quote.lastDone != null) {
         stock.color = getStockColor(quote.lastDone, stock.lastPrice);
         stock.lastPrice = quote.lastDone!;
         break;
@@ -92,11 +92,23 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   }
 
   void updateStockList(List<StockInfo> newStockList) {
+    debugPrint("updateStockList all: ${jsonEncode(newStockList)}");
     var filterStockList = newStockList.where((i) => i.showInFloat == true).where(checkStockCanShow).toList();
-    ls.subscribes(filterStockList.map((e) => e.symbol).toList().cast<String>());
+    debugPrint("updateStockList filter: ${jsonEncode(filterStockList)}");
+    ls.subscribes(filterStockList.map((e) => convertStockCode(e)).toList().cast<String>());
     setState(() {
       stockList = filterStockList;
     });
+  }
+
+  String convertStockCode(StockInfo stock) {
+    var code = stock.symbol;
+    if (stock.type == "HK") {
+      while(code.startsWith("0")) {
+        code = code.substring(1);
+      }
+    }
+    return code;
   }
 
   String generateStockText(StockInfo stock) {
@@ -141,7 +153,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
               w?.launchMainActivity();
             },
             onLongPress: () {
-              w?.hide();
+              // w?.hide();
             },
             child: Card(
                 elevation: 0,

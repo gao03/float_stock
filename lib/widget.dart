@@ -1,9 +1,7 @@
 import 'dart:math';
 
 import 'package:bruno/bruno.dart';
-import 'package:float_stock/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'entity.dart';
 
