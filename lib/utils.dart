@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'dart:async';
 
-
 import 'entity.dart';
 
-void showToast(BuildContext context, String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        duration: const Duration(seconds: 2), // 设置显示时间
-      ),
-    );
+void showToast(String text) {
+  Fluttertoast.showToast(
+    gravity: ToastGravity.CENTER,
+    msg: text,
+  );
 }
 
 Future<bool> showConfirmDialog(
-    BuildContext context,
-    String message, {
-      String cancel = '取消',
-      String confirm = '确定',
-    }) async {
+  BuildContext context,
+  String message, {
+  String cancel = '取消',
+  String confirm = '确定',
+}) async {
   bool isConfirm = false;
   await showDialog<void>(
     context: context,
@@ -111,7 +109,8 @@ MarketStatus checkDaMarketStatus() {
 
   // 09：30 - 11：30, 13:00-14:57 开市
   // 开始之前的集合竞价时间段不算在offset
-  if (checkNowBetween(9, 30, 11, 30, startWithOffset: false) || checkNowBetween(13, 00, 14, 57, endWithOffset: false)) {
+  if (checkNowBetween(9, 30, 11, 30, startWithOffset: false) ||
+      checkNowBetween(13, 00, 14, 57, endWithOffset: false)) {
     return MarketStatus.open;
   }
 
@@ -126,7 +125,8 @@ MarketStatus checkHkMarketStatus() {
   }
   // 09:30 - 12:00, 13:00-16:00 开市
   // 开始之前的集合竞价时间段不算在offset
-  if (checkNowBetween(9, 30, 12, 0, startWithOffset: false) || checkNowBetween(13, 00, 16, 00, endWithOffset: false)) {
+  if (checkNowBetween(9, 30, 12, 0, startWithOffset: false) ||
+      checkNowBetween(13, 00, 16, 00, endWithOffset: false)) {
     return MarketStatus.open;
   }
   // 16:00-16:10 都是集合竞价
@@ -171,7 +171,8 @@ bool checkNowBetween(int startHour, int startMinute, int endHour, int endMinute,
     {int offset = 0, bool startWithOffset = true, bool endWithOffset = true}) {
   int now = Now.n.hour * 60 + Now.n.minute + offset;
 
-  return now + (startWithOffset ? _globalTimeOffset : 0) >= startHour * 60 + startMinute &&
+  return now + (startWithOffset ? _globalTimeOffset : 0) >=
+          startHour * 60 + startMinute &&
       now - (endWithOffset ? _globalTimeOffset : 0) <= endHour * 60 + endMinute;
 }
 

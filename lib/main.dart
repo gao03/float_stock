@@ -10,6 +10,7 @@ import 'package:float_stock/wind.dart';
 import 'package:float_stock/entity.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
 import "package:collection/collection.dart";
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:developer';
 
 import 'loading.dart';
@@ -100,9 +101,7 @@ class _HomePageState extends State<HomePage> {
 
     if (!p1) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("请配置悬浮窗权限")),
-        );
+        showToast("请配置悬浮窗权限");
       }
       await FloatwingPlugin().openPermissionSetting();
       return;
@@ -119,9 +118,7 @@ class _HomePageState extends State<HomePage> {
     var oldStock =
         config.stockList.firstWhereOrNull((e) => e.symbol == stock.symbol);
     if (oldStock != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("${stock.name}已经在列表中了")),
-      );
+      showToast("${stock.name}已经在列表中了");
       oldStock.showInFloat = true;
     } else {
       config.stockList.add(stock);
@@ -175,9 +172,7 @@ class _HomePageState extends State<HomePage> {
     var result = await updateConfig(config);
     debugPrint('updateConfig: ${start.difference(DateTime.now())}');
     if (context.mounted && notify && !result) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("操作失败")),
-      );
+      showToast("操作失败");
     }
 
     await checkAndShowWindow();
@@ -252,7 +247,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<StockInfo?> chooseNewStock(List<StockInfo> stockList) async {
-    var selectedIndex = 0;
+    int? selectedIndex;
 
     if (stockList.length == 1) {
       var isConfirm = await showDialog(
@@ -273,37 +268,59 @@ class _HomePageState extends State<HomePage> {
           );
         },
       );
-      if (!isConfirm) {
-        selectedIndex = -1;
+      if (isConfirm) {
+        selectedIndex = 0;
       }
     } else {
       var conditions = stockList.map((e) => e.name).toList().cast<String>();
+      int? currentIndex;
+
       await showDialog(
         context: context,
         builder: (_) => StatefulBuilder(
           builder: (context, state) {
             return SimpleDialog(
               title: const Text('请选择股票'),
-              children: conditions
-                  .asMap()
-                  .entries
-                  .map((entry) => RadioListTile(
-                        title: Text(entry.value),
-                        value: entry.key,
-                        groupValue: selectedIndex,
-                        onChanged: (int? value) {
-                          state(() {
-                            selectedIndex = value!;
-                          });
-                        },
-                      ))
-                  .toList(),
+              children: [
+                ...conditions.asMap().entries.map((entry) {
+                  return RadioListTile(
+                    title: Text(entry.value),
+                    value: entry.key,
+                    groupValue: currentIndex,
+                    onChanged: (int? value) {
+                      state(() {
+                        currentIndex = value!;
+                      });
+                    },
+                  );
+                }).toList(),
+                const Divider(), // 添加分隔线以区分选项和按钮
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, null); // 取消选择，返回 null
+                      },
+                      child: const Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        selectedIndex = currentIndex;
+                        Navigator.pop(context, selectedIndex); // 确定选择，返回选中的索引
+                      },
+                      child: const Text('确定'),
+                    ),
+                  ],
+                ),
+              ],
             );
           },
         ),
       );
     }
-    return selectedIndex >= 0 ? stockList[selectedIndex] : null;
+
+    return selectedIndex != null ? stockList[selectedIndex!] : null;
   }
 
   void showStockInputDialog() async {
@@ -337,11 +354,7 @@ class _HomePageState extends State<HomePage> {
                 }
 
                 if (stockList.isEmpty) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("没找到")),
-                    );
-                  }
+                  showToast("没找到");
                 } else {
                   var stock = await chooseNewStock(stockList);
                   if (stock != null) {
@@ -371,125 +384,127 @@ class _HomePageState extends State<HomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-          child: Align(
-              alignment: Alignment.topCenter,
-              child: SingleChildScrollView(
-                  child: Column(children: [
-                SwitchListTile(
-                  title: const Text("是否启用"),
-                  value: config.floatConfig.enable,
-                  onChanged: (newValue) {
-                    setStateAndSave(() {
-                      config.floatConfig.enable = newValue;
-                    });
-                  },
-                ),
-                SliderWidget(
-                  title: "透明度",
-                  value: config.floatConfig.opacity,
-                  onChanged: (data) {
-                    setStateAndSave(() {
-                      config.floatConfig.opacity = data;
-                    });
-                  },
-                ),
-                SliderWidget(
-                  minValue: 0.01,
-                  maxValue: 0.5,
-                  value: config.floatConfig.windowWidth,
-                  onChanged: (data) {
-                    setStateAndSave(() {
-                      config.floatConfig.windowWidth = data;
-                    });
-                  },
-                  title: '窗口宽度',
-                ),
-                SliderWidget(
-                  title: "窗口高度",
-                  minValue: 0.05,
-                  maxValue: 1,
-                  value: config.floatConfig.windowHeight,
-                  onChanged: (data) {
-                    setStateAndSave(() {
-                      config.floatConfig.windowHeight = data;
-                    });
-                  },
-                ),
-                SliderWidget(
-                  title: "字体大小",
-                  minValue: 0.05,
-                  maxValue: 0.3,
-                  value: config.floatConfig.fontSize,
-                  onChanged: (data) {
-                    setStateAndSave(() {
-                      config.floatConfig.fontSize = data;
-                    });
-                  },
-                ),
-                Container(
-                  color: const Color(0xfafafaff),
-                  height: 10,
-                ),
-                ReorderableListView(
-                  shrinkWrap: true,
-                  onReorder: (int oldIndex, int newIndex) {
-                    setStateAndSave(() {
-                      if (oldIndex < newIndex) {
-                        newIndex -= 1;
-                      }
-                      var temp = config.stockList.removeAt(oldIndex);
-                      config.stockList.insert(newIndex, temp);
-                    });
-                  },
-                  children: List.generate(config.stockList.length * 2, (index) {
-                        if (index.isOdd) {
-                          int itemIndex = index ~/ 2;
-                          final stock = config.stockList[itemIndex];
-                          return Dismissible(
-                            key: Key(stock.symbol),
-                            background: Container(color: Colors.red),
-                            direction: DismissDirection.endToStart,
-                            confirmDismiss: (direction) => deleteStock(stock),
-                            child: ListTile(
-                              title: Text(stock.name),
-                              trailing: Switch(
-                                value: stock.showInFloat,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    stock.showInFloat = value;
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        "在悬浮窗${value ? '' : '不'}展示${stock.name}",
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+        child: Column(
+          children: [
+            SwitchListTile(
+              title: const Text("是否启用"),
+              value: config.floatConfig.enable,
+              onChanged: (newValue) {
+                setStateAndSave(() {
+                  config.floatConfig.enable = newValue;
+                });
+              },
+            ),
+            SliderWidget(
+              title: "透明度",
+              value: config.floatConfig.opacity,
+              onChanged: (data) {
+                setStateAndSave(() {
+                  config.floatConfig.opacity = data;
+                });
+              },
+            ),
+            SliderWidget(
+              minValue: 0.01,
+              maxValue: 0.5,
+              value: config.floatConfig.windowWidth,
+              onChanged: (data) {
+                setStateAndSave(() {
+                  config.floatConfig.windowWidth = data;
+                });
+              },
+              title: '窗口宽度',
+            ),
+            SliderWidget(
+              title: "窗口高度",
+              minValue: 0.05,
+              maxValue: 1,
+              value: config.floatConfig.windowHeight,
+              onChanged: (data) {
+                setStateAndSave(() {
+                  config.floatConfig.windowHeight = data;
+                });
+              },
+            ),
+            SliderWidget(
+              title: "字体大小",
+              minValue: 0.05,
+              maxValue: 0.3,
+              value: config.floatConfig.fontSize,
+              onChanged: (data) {
+                setStateAndSave(() {
+                  config.floatConfig.fontSize = data;
+                });
+              },
+            ),
+            Container(
+              color: const Color(0xfafafaff),
+              height: 10,
+            ),
+            Expanded(
+              child: ReorderableListView(
+                onReorder: (int oldIndex, int newIndex) {
+                  oldIndex = oldIndex ~/ 2;
+                  newIndex = newIndex ~/ 2;
+                  debugPrint(
+                      "index $oldIndex $newIndex ${config.stockList[oldIndex].name}");
+                  setStateAndSave(() {
+                    if (newIndex > oldIndex) {
+                      newIndex -= 1;
+                    }
+                    // 移动元素并更新列表
+                    var movedItem = config.stockList.removeAt(oldIndex);
+                    config.stockList.insert(newIndex, movedItem);
+                  });
+                },
+                children: List.generate(config.stockList.length * 2, (index) {
+                      if (index.isOdd) {
+                        int itemIndex = index ~/ 2;
+                        final stock = config.stockList[itemIndex];
+                        return Dismissible(
+                          key: Key(stock.symbol),
+                          background: Container(color: Colors.red),
+                          direction: DismissDirection.endToStart,
+                          confirmDismiss: (direction) => deleteStock(stock),
+                          child: ListTile(
+                            title: Text(stock.name),
+                            trailing: Switch(
+                              value: stock.showInFloat,
+                              onChanged: (bool value) {
+                                setStateAndSave(() {
+                                  stock.showInFloat = value;
+                                });
+                                showToast(
+                                  "在悬浮窗${value ? '' : '不'}展示${stock.name}",
+                                );
+                              },
                             ),
-                          );
-                        } else {
-                          return Divider(
-                            key: ValueKey('divider_$index'),
-                            thickness: 0.5,
-                            height: 1,
-                            indent: 10,
-                            endIndent: 10,
-                          );
-                        }
-                      }) +
-                      [
-                        const Divider(
-                          key: ValueKey('divider_-1'),
+                          ),
+                        );
+                      } else {
+                        return Divider(
+                          key: ValueKey('divider_$index'),
                           thickness: 0.5,
                           height: 1,
                           indent: 10,
                           endIndent: 10,
-                        )
-                      ],
-                ),
-              ])))),
+                        );
+                      }
+                    }) +
+                    [
+                      const Divider(
+                        key: ValueKey('divider_-1'),
+                        thickness: 0.5,
+                        height: 1,
+                        indent: 10,
+                        endIndent: 10,
+                      )
+                    ],
+              ),
+            ),
+          ],
+        ),
+      ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 6.0,
