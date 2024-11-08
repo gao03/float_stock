@@ -18,26 +18,22 @@ abstract class ToJsonString {
 class FloatConfig extends ToJsonString {
   bool enable;
   double opacity;
-  List<int> showColumns;
   int frequency;
   double windowHeight;
   double windowWidth;
   double screenHeight;
   double screenWidth;
   double fontSize;
-  String fontColorType;
 
   FloatConfig(
       {required this.enable,
       required this.opacity,
-      required this.showColumns,
       required this.frequency,
       required this.windowHeight,
       required this.windowWidth,
       required this.screenHeight,
       required this.screenWidth,
-      this.fontSize = 20,
-      this.fontColorType = ""});
+      this.fontSize = 20,});
 
   factory FloatConfig.fromJson(Map<String, dynamic> json) => _$FloatConfigFromJson(json);
 

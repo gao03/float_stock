@@ -1,4 +1,3 @@
-import 'package:bruno/bruno.dart';
 import 'package:flutter/material.dart';
 
 import 'dart:async';
@@ -6,40 +5,43 @@ import 'dart:async';
 
 import 'entity.dart';
 
-void showLoadingDialog(BuildContext context, String message) {
-  BrnLoadingDialog.show(context, content: message);
-}
-
-void closeLoadingDialog(BuildContext context) {
-  BrnLoadingDialog.dismiss(context);
-}
-
-void showToast(
-  BuildContext context,
-  String text,
-) {
-  if (context.mounted) {
-    BrnToast.show(text, context);
-  }
+void showToast(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        duration: const Duration(seconds: 2), // 设置显示时间
+      ),
+    );
 }
 
 Future<bool> showConfirmDialog(
-  BuildContext context,
-  String message, {
-  String cancel = '取消',
-  String confirm = '确定',
-}) async {
+    BuildContext context,
+    String message, {
+      String cancel = '取消',
+      String confirm = '确定',
+    }) async {
   bool isConfirm = false;
   await showDialog<void>(
     context: context,
     builder: (BuildContext dialogContext) {
-      return BrnDialog(
-        actionsText: [cancel, confirm],
-        messageText: message,
-        indexedActionCallback: (index) {
-          Navigator.pop(context);
-          isConfirm = (index == 1);
-        },
+      return AlertDialog(
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // 关闭对话框
+              isConfirm = false;
+            },
+            child: Text(cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(); // 关闭对话框
+              isConfirm = true;
+            },
+            child: Text(confirm),
+          ),
+        ],
       );
     },
   );

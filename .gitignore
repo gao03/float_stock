@@ -77,7 +77,6 @@ doc/api/
 ### Flutter ###
 # Flutter/Dart/Pub related
 **/doc/api/
-.fvm/flutter_sdk
 .pub-cache/
 .pub/
 coverage/
@@ -166,7 +165,6 @@ replay_pid*
 
 # Icon must end with two \r
 Icon
-
 
 # Thumbnails
 ._*
@@ -330,3 +328,6 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/macos,androidstudio,visualstudiocode,dart,flutter,android,java
 
 !longport/android/src/main/jniLibs/arm64-v8a/liblongbridge_java.so
+
+# FVM Version Cache
+.fvm/

@@ -58,7 +58,8 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   Future<void> onQuote(String symbol, PushQuote quote) async {
     for (var stock in stockList!) {
       debugPrint("onQuote: $symbol");
-      if (symbol.startsWith(convertStockCode(stock).toUpperCase()) && quote.lastDone != null) {
+      if (symbol.startsWith(convertStockCode(stock).toUpperCase()) &&
+          quote.lastDone != null) {
         stock.color = getStockColor(quote.lastDone, stock.lastPrice);
         stock.lastPrice = quote.lastDone!;
         break;
@@ -84,18 +85,31 @@ class _FloatWindowViewState extends State<FloatWindowView> {
     checkAndInitLs();
     await w?.show(visible: newConfig.floatConfig.enable);
     // var screenHeight = w?.system?.screenHeight ?? newConfig.floatConfig.screenHeight;
-    var screenWidth = w?.system?.screenWidth ?? newConfig.floatConfig.screenWidth;
+    var screenWidth =
+        w?.system?.screenWidth ?? newConfig.floatConfig.screenWidth;
+    if (screenWidth == 0) {
+      screenWidth = newConfig.floatConfig.screenWidth;
+    }
     await w?.update(WindowConfig(
-      height: (newConfig.floatConfig.windowHeight * stockHeightBase * stockList!.length).toInt(),
+      height: (newConfig.floatConfig.windowHeight *
+              stockHeightBase *
+              stockList!.length)
+          .toInt(),
       width: (newConfig.floatConfig.windowWidth * screenWidth).toInt(),
     ));
   }
 
   void updateStockList(List<StockInfo> newStockList) {
     debugPrint("updateStockList all: ${jsonEncode(newStockList)}");
-    var filterStockList = newStockList.where((i) => i.showInFloat == true).where(checkStockCanShow).toList();
+    var filterStockList = newStockList
+        .where((i) => i.showInFloat == true)
+        .where(checkStockCanShow)
+        .toList();
     debugPrint("updateStockList filter: ${jsonEncode(filterStockList)}");
-    ls.subscribes(filterStockList.map((e) => convertStockCode(e)).toList().cast<String>());
+    ls.subscribes(filterStockList
+        .map((e) => convertStockCode(e))
+        .toList()
+        .cast<String>());
     setState(() {
       stockList = filterStockList;
     });
@@ -104,7 +118,7 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   String convertStockCode(StockInfo stock) {
     var code = stock.symbol;
     if (stock.type == "HK") {
-      while(code.startsWith("0")) {
+      while (code.startsWith("0")) {
         code = code.substring(1);
       }
     }
@@ -112,42 +126,24 @@ class _FloatWindowViewState extends State<FloatWindowView> {
   }
 
   String generateStockText(StockInfo stock) {
-    return config.floatConfig.showColumns.map((e) => getStockField(stock, e)).join(" ");
-  }
-
-  String getStockField(StockInfo stock, int index) {
-    //["名称", "代码", "价格", "涨跌幅"];
-    return [stock.name, stock.code, formatNum(stock.lastPrice), '${formatNum(getShowDiff(stock))}%'][index];
+    return formatNum(stock.lastPrice);
   }
 
   Color getStockColor(double? curPrice, double? oldPrice) {
-    if (config.floatConfig.fontColorType == "黑色" || curPrice == null || oldPrice == null) {
-      return Colors.black;
-    }
-    // if (config.floatConfig.fontColorType == "当日涨跌") {
-    //   var showDiff = getShowDiff(stock) ?? 0;
-    //   return showDiff == 0
-    //       ? Colors.black
-    //       : showDiff > 0
-    //           ? Colors.red
-    //           : Colors.green;
-    // }
-    if (config.floatConfig.fontColorType == "同比涨跌") {
-      return curPrice == oldPrice
-          ? Colors.black
-          : curPrice > oldPrice
-              ? Colors.red
-              : Colors.green;
-    }
-
-    return Colors.black;
+    return curPrice == oldPrice || curPrice == null || oldPrice == null
+        ? Colors.black
+        : curPrice > oldPrice
+            ? Colors.red
+            : Colors.green;
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
         width: config.floatConfig.windowWidth * config.floatConfig.screenWidth,
-        height: config.floatConfig.windowHeight * stockHeightBase * stockList!.length,
+        height: config.floatConfig.windowHeight *
+            stockHeightBase *
+            stockList!.length,
         child: GestureDetector(
             onDoubleTap: () {
               w?.launchMainActivity();
@@ -167,11 +163,13 @@ class _FloatWindowViewState extends State<FloatWindowView> {
                       Text(generateStockText(stock),
                           style: TextStyle(
                             color: stock.color,
-                            fontSize: config.floatConfig.fontSize,
+                            fontSize: config.floatConfig.fontSize * 100,
                           ),
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.left),
-                      Offstage(offstage: (stock.symbol == stockList!.last.symbol), child: const Divider(indent: 15)),
+                      Offstage(
+                          offstage: (stock.symbol == stockList!.last.symbol),
+                          child: const Divider(indent: 15)),
                     ])
                 ]))));
   }

@@ -9,29 +9,24 @@ part of 'entity.dart';
 FloatConfig _$FloatConfigFromJson(Map<String, dynamic> json) => FloatConfig(
       enable: json['enable'] as bool,
       opacity: (json['opacity'] as num).toDouble(),
-      showColumns:
-          (json['showColumns'] as List<dynamic>).map((e) => e as int).toList(),
       frequency: json['frequency'] as int,
       windowHeight: (json['windowHeight'] as num).toDouble(),
       windowWidth: (json['windowWidth'] as num).toDouble(),
       screenHeight: (json['screenHeight'] as num).toDouble(),
       screenWidth: (json['screenWidth'] as num).toDouble(),
       fontSize: (json['fontSize'] as num?)?.toDouble() ?? 20,
-      fontColorType: json['fontColorType'] as String? ?? "",
     );
 
 Map<String, dynamic> _$FloatConfigToJson(FloatConfig instance) =>
     <String, dynamic>{
       'enable': instance.enable,
       'opacity': instance.opacity,
-      'showColumns': instance.showColumns,
       'frequency': instance.frequency,
       'windowHeight': instance.windowHeight,
       'windowWidth': instance.windowWidth,
       'screenHeight': instance.screenHeight,
       'screenWidth': instance.screenWidth,
       'fontSize': instance.fontSize,
-      'fontColorType': instance.fontColorType,
     };
 
 StockRtInfo _$StockRtInfoFromJson(Map<String, dynamic> json) => StockRtInfo(
