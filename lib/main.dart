@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
     if (!isRunning) {
       await FloatwingPlugin().startService();
     }
-    await checkAndShowWindow();
+    Future.delayed(const Duration(seconds: 3), checkAndShowWindow);
   }
 
   double get maxHeight {
@@ -229,19 +229,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      await shareDataToFloat(config.toJson(), "config");
-    } catch (e) {
-      log("checkAndShowWindow", error: e);
-    }
-  }
-
-  Future<void> shareDataToFloat(dynamic data, String name) async {
-    try {
-      return FloatwingPlugin()
+      await FloatwingPlugin()
           .windows[window.id]
-          ?.share(jsonEncode(data), name: name);
-    } catch (e) {
-      log("shareDataToFloat", error: e);
+          ?.share(jsonEncode(config.toJson()), name: "config");
+    } catch (e, stackTrace) {
+      log("checkAndShowWindow", error: e);
+      debugPrintStack(stackTrace:stackTrace);
     }
   }
 
