@@ -10,7 +10,6 @@ import 'package:float_stock/wind.dart';
 import 'package:float_stock/entity.dart';
 import 'package:flutter_floatwing/flutter_floatwing.dart';
 import "package:collection/collection.dart";
-import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:developer';
 
 import 'loading.dart';
@@ -474,9 +473,6 @@ class _HomePageState extends State<HomePage> {
                                 setStateAndSave(() {
                                   stock.showInFloat = value;
                                 });
-                                showToast(
-                                  "在悬浮窗${value ? '' : '不'}展示${stock.name}",
-                                );
                               },
                             ),
                           ),
@@ -508,23 +504,31 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 6.0,
-        child: Padding(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 26.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              IconButton(
-                tooltip: "刷新",
-                icon: const Icon(Icons.refresh),
-                onPressed: updateConfigAndRefresh,
+              SizedBox(
+                width: 80.0,
+                child: IconButton(
+                  iconSize: 30.0,
+                  tooltip: "刷新",
+                  icon: const Icon(Icons.refresh),
+                  onPressed: updateConfigAndRefresh,
+                ),
               ),
-              IconButton(
-                icon: const Icon(Icons.exit_to_app),
-                tooltip: "退出",
-                onPressed: () {
-                  // 关闭应用程序
-                  exit(0);
-                },
+              SizedBox(
+                width: 80.0,
+                child: IconButton(
+                  iconSize: 30.0,
+                  icon: const Icon(Icons.close),
+                  tooltip: "退出",
+                  onPressed: () {
+                    // 关闭应用程序
+                    exit(0);
+                  },
+                ),
               ),
             ],
           ),
@@ -532,6 +536,7 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: showStockInputDialog,
+        tooltip: "添加",
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
