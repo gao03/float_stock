@@ -66,7 +66,7 @@ class FloatWindowViewState extends State<FloatWindowView> {
   }
 
   bool canStockBeShown(StockInfo stock) {
-    return stock.showInFloat && checkMarketStatus(stock.type) != MarketStatus.open;
+    return stock.showInFloat && checkMarketStatus(stock.type) != MarketStatus.close;
   }
 
   void refresh(AppConfig newConfig) async {
